@@ -1,0 +1,66 @@
+{
+  "name": "markdown-tester",
+  "version": "0.0.1",
+  "description": "Test your markdown files",
+  "type": "module",
+  "module": "./src/index.js",
+  "main": "./lib/index.cjs",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./src/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "author": {
+    "name": "Zerodep AB",
+    "url": "https://github.com/zerodep"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zerodep/markdown-tester.git"
+  },
+  "scripts": {
+    "test": "mocha",
+    "posttest": "npm run lint && npm run dist",
+    "lint": "eslint . --cache && prettier . --check --cache",
+    "prepare": "npm run dist",
+    "test:md": "node --experimental-vm-modules --no-warnings ./scripts/testmd.js ./README.md",
+    "test:lcov": "c8 -r lcov mocha && npm run lint",
+    "cov:html": "c8 mocha -R dot && c8 report --reporter html",
+    "dist": "rollup -c && dts-buddy"
+  },
+  "keywords": [
+    "markdown",
+    "example",
+    "test",
+    "vm",
+    "SourceTextModule",
+    "SyntheticModule"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@0dep/piso": "^0.1.4",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@types/chai": "^4.3.16",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.12.11",
+    "c8": "^9.1.0",
+    "chai": "^5.1.1",
+    "dts-buddy": "^0.4.7",
+    "eslint": "^9.2.0",
+    "mocha": "^10.4.0",
+    "prettier": "^3.2.5",
+    "rollup": "^4.17.2",
+    "ts-node": "^10.9.2"
+  },
+  "files": [
+    "src",
+    "types",
+    "dist"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "include": ["src/**/*", "types"],
+  "exclude": ["typings/browser.d.ts", "typings/browser", "node_modules"],
+  "compilerOptions": {
+    "emitDeclarationOnly": true,
+    "sourceMap": false,
+    "rootDir": "src",
+    "lib": ["es2017"],
+    "target": "es2017",
+    "outDir": "./tmp/ignore",
+    "declaration": true,
+    "noEmitOnError": true,
+    "noErrorTruncation": true,
+    "allowJs": true,
+    "checkJs": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "stripInternal": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strictNullChecks": false,
+    "typeRoots": ["./node_modules/@types"],
+    "paths": {
+      "types": ["./types/types.js"]
+    }
+  }
+}

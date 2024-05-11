@@ -1,0 +1,15 @@
+{
+	"version": 3,
+	"file": "index.d.ts",
+	"names": [
+		"ScriptLinker"
+	],
+	"sources": [
+		"../src/script-linker.js"
+	],
+	"sourcesContent": [
+		null
+	],
+	"mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;iBAYgBA,YAAYA;cAAZA,YAAYA",
+	"ignoreList": []
+}

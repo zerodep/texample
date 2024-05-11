@@ -1,0 +1,6 @@
+{
+  "recursive": true,
+  "exit": true,
+  "require": ["chai/register-expect.js"],
+  "node-option": ["experimental-vm-modules", "no-warnings"]
+}
