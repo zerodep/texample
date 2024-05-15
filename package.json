@@ -1,6 +1,6 @@
 {
   "name": "texample",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Execute your README markdown javascript examples",
   "type": "module",
   "module": "./src/index.js",
@@ -32,7 +32,6 @@
     "posttest": "npm run lint && npm run dist",
     "lint": "eslint . --cache && prettier . --check --cache",
     "prepare": "npm run dist",
-    "test:md": "node --experimental-vm-modules --no-warnings ./scripts/testmd.js ./README.md",
     "test:lcov": "c8 -r lcov mocha && npm run lint",
     "cov:html": "c8 mocha -R dot && c8 report --reporter html",
     "dist": "rollup -c && dts-buddy"

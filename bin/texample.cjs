@@ -3,8 +3,10 @@
 
 const { fork } = require('node:child_process');
 
+const cli = require.resolve('../cli.cjs');
+
 run();
 
 function run() {
-  fork('./cli.cjs', process.argv.splice(2), { CWD: __dirname, execArgv: ['--experimental-vm-modules', '--no-warnings'] });
+  fork(cli, process.argv.splice(2), { CWD: __dirname, execArgv: ['--experimental-vm-modules', '--no-warnings'] });
 }
