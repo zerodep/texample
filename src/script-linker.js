@@ -55,7 +55,6 @@ ScriptLinker.prototype.linkScriptSource = async function linkScriptSource(script
  * @returns
  */
 ScriptLinker.prototype.linkNodeModule = async function linkNodeModule(identifier, reference) {
-  console.log({ identifier });
   const imported = await import(identifier);
   const exported = Object.keys(imported);
 

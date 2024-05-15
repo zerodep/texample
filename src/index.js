@@ -31,6 +31,26 @@ export class ExampleEvaluator {
    * @param {number} [blockIdx]
    */
   async evaluate(blockIdx) {
+    const contentCache = new Map();
+
+    const blocks = await this.getBlocks();
+
+    for (let idx = 0; idx < blocks.length; idx++) {
+      const { script, lineOffset } = blocks[idx];
+
+      if (!isNaN(blockIdx) && idx !== blockIdx) continue;
+
+      this.sandbox.console?.log(`${idx}: ${this.identifier}:${lineOffset}`);
+
+      const loader = new ScriptLinker(this.packageName, this.module, this.CWD, contentCache);
+      await script.link(loader.linkFunction);
+      await script.evaluate();
+    }
+  }
+  /**
+   * Get example blocks
+   */
+  async getBlocks() {
     const fileContent = await fs.readFile(this.exampleFile);
     /** @type {import('types').ExampleScript[]} */
     const blocks = [];
@@ -46,19 +66,7 @@ export class ExampleEvaluator {
       });
     });
 
-    const contentCache = new Map();
-
-    for (let idx = 0; idx < blocks.length; idx++) {
-      const { script, lineOffset } = blocks[idx];
-
-      if (!isNaN(blockIdx) && idx !== blockIdx) continue;
-
-      this.sandbox.console?.log(`${idx}: ${this.identifier}:${lineOffset}`);
-
-      const loader = new ScriptLinker(this.packageName, this.module, this.CWD, contentCache);
-      await script.link(loader.linkFunction);
-      await script.evaluate();
-    }
+    return blocks;
   }
   /**
    * Parse script

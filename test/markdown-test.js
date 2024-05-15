@@ -13,7 +13,7 @@ describe('markdown tester', () => {
   it('evaluates all javascript examples', async () => {
     const logLines = [];
 
-    const evaluator = new ExampleEvaluator('./test/docs/README.md', 'markdown-tester', './src/index.js', '.', {
+    const evaluator = new ExampleEvaluator('./test/docs/README.md', 'texample', './src/index.js', '.', {
       Date,
       console: {
         log(...args) {
@@ -61,8 +61,6 @@ describe('markdown tester', () => {
     });
 
     await evaluator.evaluate();
-
-    console.log(logLines);
 
     expect(logLines.length).to.be.above(0);
   });

@@ -1,6 +1,17 @@
-# markdown-tester
+# Execute your README markdown javascript examples
 
-[![Build](https://github.com/zerodep/markdown-tester/actions/workflows/build.yaml/badge.svg)](https://github.com/zerodep/markdown-tester/actions/workflows/build.yaml)[![Coverage Status](https://coveralls.io/repos/github/zerodep/markdown-tester/badge.svg?branch=main)](https://coveralls.io/github/zerodep/markdown-tester?branch=main)
+[![Build](https://github.com/zerodep/texample/actions/workflows/build.yaml/badge.svg)](https://github.com/zerodep/texample/actions/workflows/build.yaml)[![Coverage Status](https://coveralls.io/repos/github/zerodep/texample/badge.svg?branch=main)](https://coveralls.io/github/zerodep/texample?branch=main)
+
+# CLI
+
+Arguments
+
+- List of markdown files separated by comma (,)
+- Optional markdown block index number, from 0
+
+```sh
+texample ./README.md,./docs/API.md
+```
 
 # Example
 
@@ -12,7 +23,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { resolve as resolvePath } from 'node:path';
 
-import { ExampleEvaluator } from 'markdown-tester';
+import { ExampleEvaluator } from 'texample';
 
 if (!('SourceTextModule' in vm)) throw new Error('No SourceTextModule in vm, try using node --experimental-vm-modules flag');
 

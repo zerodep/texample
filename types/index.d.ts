@@ -1,5 +1,6 @@
-declare module 'markdown-tester' {
+declare module 'texample' {
 	import type { default as vm } from 'node:vm';
+	import type { SourceTextModule as SourceTextModule_1 } from 'vm';
 	export class ExampleEvaluator {
 		/**
 		 * Constructor
@@ -23,6 +24,10 @@ declare module 'markdown-tester' {
 		 * 
 		 */
 		evaluate(blockIdx?: number): Promise<void>;
+		/**
+		 * Get example blocks
+		 */
+		getBlocks(): Promise<ExampleScript[]>;
 		/**
 		 * Parse script
 		 * @param scriptBody example script
@@ -75,6 +80,11 @@ declare module 'markdown-tester' {
 		 */
 		getInternalScriptSource(scriptPath: string): Promise<string>;
 	}
+  interface ExampleScript {
+	scriptSource: string;
+	lineOffset: number;
+	script: SourceTextModule_1;
+  }
 }
 
 //# sourceMappingURL=index.d.ts.map

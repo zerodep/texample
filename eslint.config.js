@@ -77,6 +77,18 @@ export default [
     },
   },
   {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      parserOptions: {
+        sourceType: 'commonjs',
+        ecmaVersion: 2020,
+      },
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+  {
     files: ['test/**/*.js'],
     languageOptions: {
       globals: {
