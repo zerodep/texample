@@ -10,7 +10,7 @@ if (!('SourceTextModule' in vm)) throw new Error('No SourceTextModule in vm, try
 
 const CWD = process.cwd();
 
-const { name, module: myModule } = require(resolvePath(CWD, 'package.json'));
+const packageDefinition = require(resolvePath(CWD, 'package.json'));
 
 const markdownFiles = process.argv[2] || './README.md';
 const blockIdx = Number(process.argv[3]);
@@ -23,7 +23,7 @@ run().catch((err) => {
 
 async function run() {
   for (const filePath of markdownFiles.split(',')) {
-    await new ExampleEvaluator(filePath, name, myModule, CWD, {
+    await new ExampleEvaluator(filePath, packageDefinition, CWD, {
       Buffer,
       process,
       Date,
