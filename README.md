@@ -30,14 +30,14 @@ if (!('SourceTextModule' in vm)) throw new Error('No SourceTextModule in vm, try
 const CWD = process.cwd();
 
 const nodeRequire = createRequire(fileURLToPath(import.meta.url));
-const { name, module: myModule } = nodeRequire(resolvePath(CWD, 'package.json'));
+const packageDefinition = nodeRequire(resolvePath(CWD, 'package.json'));
 
 const markdownFiles = process.argv[2] || './README.md';
 const blockIdx = Number(process.argv[3]);
 
 (async () => {
   for (const filePath of markdownFiles.split(',')) {
-    await new ExampleEvaluator(filePath, name, myModule, CWD, {
+    await new ExampleEvaluator(filePath, packageDefinition, CWD, {
       Buffer,
       console,
       setTimeout,

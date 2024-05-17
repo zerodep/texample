@@ -11,15 +11,13 @@ export class ExampleEvaluator {
   /**
    * Constructor
    * @param {string} markdownFilePath markdown file path with javascript examples
-   * @param {string} packageName package name from package.json
-   * @param {string} module package entry file from package.json, e.g. same as module
+   * @param {import('types').PackageDefinition} packageDefinition package.json
    * @param {string} CWD current working directory
    * @param {any} [sandbox] object passed to vm.createContext
    */
-  constructor(markdownFilePath, packageName, module, CWD, sandbox) {
+  constructor(markdownFilePath, packageDefinition, CWD, sandbox) {
     const exampleFile = (this.exampleFile = resolvePath(CWD, markdownFilePath));
-    this.packageName = packageName;
-    this.module = module;
+    this.packageDefinition = packageDefinition;
     this.CWD = CWD;
     this.line = 0;
     this.prevCharIdx = 0;
@@ -31,7 +29,7 @@ export class ExampleEvaluator {
    * @param {number} [blockIdx]
    */
   async evaluate(blockIdx) {
-    const contentCache = new Map();
+    const fileContentCache = new Map();
 
     const blocks = await this.getBlocks();
 
@@ -42,7 +40,7 @@ export class ExampleEvaluator {
 
       this.sandbox.console?.log(`${idx}: ${this.identifier}:${lineOffset}`);
 
-      const loader = new ScriptLinker(this.packageName, this.module, this.CWD, contentCache);
+      const loader = new ScriptLinker(this.packageDefinition, this.CWD, fileContentCache);
       await script.link(loader.linkFunction);
       await script.evaluate();
     }
@@ -78,7 +76,7 @@ export class ExampleEvaluator {
     return new vm.SourceTextModule(scriptBody, {
       identifier,
       context: vm.createContext(this.sandbox, {
-        name: this.packageName,
+        name: this.packageDefinition.name,
       }),
       lineOffset,
       initializeImportMeta(meta) {

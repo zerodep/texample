@@ -5,16 +5,18 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 /**
  * Script linker
- * @param {string} packageName
- * @param {string} module
+ * @param {import('types').PackageDefinition} packageDefinition package json
  * @param {string} CWD
- * @param {Map<string, string>} [fileCache] optional file cache
+ * @param {Map<string, Promise<string>>} [fileCache] optional promised file cache
  */
-export function ScriptLinker(packageName, module, CWD, fileCache) {
-  this.packageName = packageName;
-  this.module = module;
+export function ScriptLinker(packageDefinition, CWD, fileCache) {
+  this.packageDefinition = packageDefinition;
+  this.packageName = packageDefinition.name;
+  const exports = packageDefinition.exports;
+  // @ts-ignore
+  this.module = exports?.['.']?.import || exports?.import || packageDefinition.module;
   this.CWD = CWD;
-  /** @type {Map<string, string>} */
+  /** @type {Map<string, Promise<string>>} */
   this.fileCache = fileCache ?? new Map();
   this.linkFunction = this.link.bind(this);
 }
@@ -27,8 +29,8 @@ export function ScriptLinker(packageName, module, CWD, fileCache) {
  */
 ScriptLinker.prototype.link = function linkScript(specifier, reference) {
   let modulePath;
-  if (specifier === this.packageName) {
-    modulePath = resolvePath(this.CWD, this.module);
+  if ((modulePath = this.getPackageModule(specifier))) {
+    modulePath = resolvePath(this.CWD, modulePath);
     return this.linkScriptSource(modulePath, reference.context);
   } else if (isRelative(specifier)) {
     modulePath = resolvePath(dirname(fileURLToPath(reference.identifier)), specifier.split(sep).join(sep));
@@ -36,6 +38,26 @@ ScriptLinker.prototype.link = function linkScript(specifier, reference) {
   } else {
     return this.linkNodeModule(specifier, reference);
   }
+};
+
+/**
+ * Get current package module path
+ * @param {string} specifier
+ * @returns {string | undefined}
+ */
+ScriptLinker.prototype.getPackageModule = function getPackageModule(specifier) {
+  const packageName = this.packageName;
+  if (!specifier.startsWith(packageName)) return;
+  if (specifier === packageName) return this.module;
+
+  const subModule = specifier.substring(packageName.length);
+
+  /** @type {any} */
+  const exports = this.packageDefinition.exports;
+
+  if (!exports) return;
+
+  return exports[`.${subModule}`]?.import;
 };
 
 /**
@@ -91,18 +113,23 @@ ScriptLinker.prototype.linkInternalScript = async function linkInternalScript(sc
  * @param {string} scriptPath
  * @returns {Promise<string>} content
  */
-ScriptLinker.prototype.getInternalScriptSource = async function getInternalScriptSource(scriptPath) {
+ScriptLinker.prototype.getInternalScriptSource = function getInternalScriptSource(scriptPath) {
   const fileCache = this.fileCache;
-  let content = fileCache?.get(scriptPath);
-  if (content) return content;
+  let promisedContent = fileCache?.get(scriptPath);
+  if (promisedContent) return promisedContent;
 
-  content = (await fs.readFile(scriptPath)).toString();
-  if (extname(scriptPath) === '.json') {
-    content = `export default ${content};`;
-  }
+  promisedContent = fs.readFile(scriptPath).then((b) => {
+    const fileContent = b.toString();
+    let content = fileContent;
+    if (extname(scriptPath) === '.json') {
+      content = `export default ${fileContent};`;
+    }
+    return content;
+  });
 
-  fileCache?.set(scriptPath, content);
-  return content;
+  fileCache?.set(scriptPath, promisedContent);
+
+  return promisedContent;
 };
 
 /**

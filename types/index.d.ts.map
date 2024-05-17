@@ -3,7 +3,9 @@
 	"file": "index.d.ts",
 	"names": [
 		"ScriptLinker",
-		"ExampleScript"
+		"ExampleScript",
+		"PackageDefinitionExports",
+		"PackageDefinition"
 	],
 	"sources": [
 		"../src/script-linker.js",
@@ -13,6 +15,6 @@
 		null,
 		null
 	],
-	"mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;iBAYgBA,YAAYA;cAAZA,YAAYA;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;YCVXC,aAAaA",
+	"mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;iBAWgBA,YAAYA;cAAZA,YAAYA;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;YCTXC,aAAaA;;;;;;YAMbC,wBAAwBA;;;;YAIxBC,iBAAiBA",
 	"ignoreList": []
 }

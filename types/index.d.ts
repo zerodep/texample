@@ -5,15 +5,13 @@ declare module 'texample' {
 		/**
 		 * Constructor
 		 * @param markdownFilePath markdown file path with javascript examples
-		 * @param packageName package name from package.json
-		 * @param module package entry file from package.json, e.g. same as module
+		 * @param packageDefinition package.json
 		 * @param CWD current working directory
 		 * @param sandbox object passed to vm.createContext
 		 */
-		constructor(markdownFilePath: string, packageName: string, module: string, CWD: string, sandbox?: any);
+		constructor(markdownFilePath: string, packageDefinition: PackageDefinition, CWD: string, sandbox?: any);
 		exampleFile: string;
-		packageName: string;
-		module: string;
+		packageDefinition: PackageDefinition;
 		CWD: string;
 		line: number;
 		prevCharIdx: number;
@@ -43,25 +41,32 @@ declare module 'texample' {
 	/// <reference types="node" />
 	/**
 	 * Script linker
-	 * @param fileCache optional file cache
+	 * @param packageDefinition package json
+	 * @param fileCache optional promised file cache
 	 */
-	export function ScriptLinker(packageName: string, module: string, CWD: string, fileCache?: Map<string, string>): void;
+	export function ScriptLinker(packageDefinition: PackageDefinition, CWD: string, fileCache?: Map<string, Promise<string>>): void;
 	export class ScriptLinker {
 		/**
 		 * Script linker
-		 * @param fileCache optional file cache
+		 * @param packageDefinition package json
+		 * @param fileCache optional promised file cache
 		 */
-		constructor(packageName: string, module: string, CWD: string, fileCache?: Map<string, string>);
+		constructor(packageDefinition: PackageDefinition, CWD: string, fileCache?: Map<string, Promise<string>>);
+		packageDefinition: PackageDefinition;
 		packageName: string;
-		module: string;
+		module: any;
 		CWD: string;
 		
-		fileCache: Map<string, string>;
+		fileCache: Map<string, Promise<string>>;
 		linkFunction: (specifier: string, reference: any) => Promise<vm.SyntheticModule | vm.SourceTextModule>;
 		/**
 		 * Link function used when evaluating source text module, should not be used directly without binding it to itself
 		 * */
 		link(specifier: string, reference: any): Promise<vm.SyntheticModule | vm.SourceTextModule>;
+		/**
+		 * Get current package module path
+		 * */
+		getPackageModule(specifier: string): string | undefined;
 		/**
 		 * Link script source
 		 * */
@@ -84,6 +89,16 @@ declare module 'texample' {
 	scriptSource: string;
 	lineOffset: number;
 	script: SourceTextModule_1;
+  }
+
+  interface PackageDefinitionExports {
+	[x: string]: string | PackageDefinitionExports;
+  }
+
+  interface PackageDefinition {
+	name: string;
+	module?: string;
+	exports?: PackageDefinitionExports | Record<string, string> | Record<string, PackageDefinitionExports>;
   }
 }
 

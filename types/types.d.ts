@@ -5,3 +5,13 @@ export interface ExampleScript {
   lineOffset: number;
   script: SourceTextModule;
 }
+
+export interface PackageDefinitionExports {
+  [x: string]: string | PackageDefinitionExports;
+}
+
+export interface PackageDefinition {
+  name: string;
+  module?: string;
+  exports?: PackageDefinitionExports | Record<string, string> | Record<string, PackageDefinitionExports>;
+}
