@@ -91,7 +91,35 @@ describe('markdown tester', () => {
           './sub-module': {
             import: './test/src/sub-module.mjs',
           },
+          './sub-require': {
+            require: './test/src/sub-require.cjs',
+          },
         },
+      },
+      CWD,
+      {
+        Date,
+        console: {
+          log(...args) {
+            logLines.push(args);
+          },
+        },
+      },
+    );
+
+    await evaluator.evaluate();
+
+    expect(logLines.length).to.be.above(0);
+  });
+
+  it('uses passed package main if nothing else is found', async () => {
+    const logLines = [];
+
+    const evaluator = new ExampleEvaluator(
+      './test/docs/mycommonjs.md',
+      {
+        name: 'my-require',
+        main: './test/src/sub-require.cjs',
       },
       CWD,
       {
@@ -123,6 +151,9 @@ describe('markdown tester', () => {
           },
           './sub-module': {
             import: './test/src/sub-module.mjs',
+          },
+          './sub-require': {
+            require: './test/src/sub-require.cjs',
           },
         },
       },
@@ -160,6 +191,9 @@ describe('markdown tester', () => {
           './sub-sub-module': {
             import: './test/src/sub-module.mjs',
           },
+          './sub-require': {
+            require: './test/src/sub-require.cjs',
+          },
         },
       },
       CWD,
@@ -180,7 +214,7 @@ describe('markdown tester', () => {
       var err = e;
     }
 
-    expect(err).to.be.instanceof(Error);
+    expect(err).to.be.instanceof(Error).and.have.property('code', 'ERR_MODULE_NOT_FOUND');
   });
 
   it('throws if sub-module is used but no exports in package.json', async () => {
@@ -210,6 +244,6 @@ describe('markdown tester', () => {
       var err = e;
     }
 
-    expect(err).to.be.instanceof(Error);
+    expect(err).to.be.instanceof(Error).and.have.property('code', 'ERR_MODULE_NOT_FOUND');
   });
 });

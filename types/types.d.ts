@@ -13,5 +13,6 @@ export interface PackageDefinitionExports {
 export interface PackageDefinition {
   name: string;
   module?: string;
+  main?: string;
   exports?: PackageDefinitionExports | Record<string, string> | Record<string, PackageDefinitionExports>;
 }

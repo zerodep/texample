@@ -1,43 +1,38 @@
 import vm from 'node:vm';
-import fs from 'node:fs/promises';
-import { dirname, extname, resolve as resolvePath, sep } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { dirname, resolve as resolvePath, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Script linker
  * @param {import('types').PackageDefinition} packageDefinition package json
  * @param {string} CWD
- * @param {Map<string, Promise<string>>} [fileCache] optional promised file cache
  */
-export function ScriptLinker(packageDefinition, CWD, fileCache) {
+export function ScriptLinker(packageDefinition, CWD) {
   this.packageDefinition = packageDefinition;
   this.packageName = packageDefinition.name;
   const exports = packageDefinition.exports;
+  /** @type {string} */
   // @ts-ignore
-  this.module = exports?.['.']?.import || exports?.import || packageDefinition.module;
+  this.module = exports?.['.']?.import || exports?.import || packageDefinition.module || packageDefinition.main;
   this.CWD = CWD;
-  /** @type {Map<string, Promise<string>>} */
-  this.fileCache = fileCache ?? new Map();
   this.linkFunction = this.link.bind(this);
 }
 
 /**
  * Link function used when evaluating source text module, should not be used directly without binding it to itself
+ * use linkFunction instead
  * @param {string} specifier
- * @param {any} reference
- * @returns {Promise<vm.SyntheticModule | vm.SourceTextModule>}
+ * @param {import('vm').Module} reference
  */
-ScriptLinker.prototype.link = function linkScript(specifier, reference) {
+ScriptLinker.prototype.link = function link(specifier, reference) {
   let modulePath;
   if ((modulePath = this.getPackageModule(specifier))) {
-    modulePath = resolvePath(this.CWD, modulePath);
-    return this.linkScriptSource(modulePath, reference.context);
+    specifier = resolvePath(this.CWD, modulePath);
   } else if (isRelative(specifier)) {
-    modulePath = resolvePath(dirname(fileURLToPath(reference.identifier)), specifier.split(sep).join(sep));
-    return this.linkScriptSource(modulePath, reference.context);
-  } else {
-    return this.linkNodeModule(specifier, reference);
+    specifier = resolvePath(dirname(fileURLToPath(reference.identifier)), specifier.split(sep).join(sep));
   }
+
+  return this.linkModule(specifier, reference);
 };
 
 /**
@@ -57,26 +52,15 @@ ScriptLinker.prototype.getPackageModule = function getPackageModule(specifier) {
 
   if (!exports) return;
 
-  return exports[`.${subModule}`]?.import;
+  return exports[`.${subModule}`]?.import || exports[`.${subModule}`]?.require;
 };
 
 /**
- * Link script source
- * @param {string} scriptPath
- * @param {vm.Context} context
- */
-ScriptLinker.prototype.linkScriptSource = async function linkScriptSource(scriptPath, context) {
-  const source = await this.getInternalScriptSource(scriptPath);
-  return this.linkInternalScript(scriptPath, source, context);
-};
-
-/**
- * Link node module
+ * Link module
  * @param {string} identifier
- * @param {any} reference
- * @returns
+ * @param {import('vm').Module} reference
  */
-ScriptLinker.prototype.linkNodeModule = async function linkNodeModule(identifier, reference) {
+ScriptLinker.prototype.linkModule = async function linkNodeModule(identifier, reference) {
   const imported = await import(identifier);
   const exported = Object.keys(imported);
 
@@ -87,49 +71,6 @@ ScriptLinker.prototype.linkNodeModule = async function linkNodeModule(identifier
     },
     { identifier, context: reference.context },
   );
-};
-
-/**
- * Link internal script
- * @param {string} scriptPath
- * @param {string} source
- * @param {vm.Context} context
- */
-ScriptLinker.prototype.linkInternalScript = async function linkInternalScript(scriptPath, source, context) {
-  const identifier = pathToFileURL(scriptPath).toString();
-  const module = new vm.SourceTextModule(source, {
-    identifier,
-    context,
-    initializeImportMeta(meta) {
-      meta.url = identifier;
-    },
-  });
-  await module.link(this.linkFunction);
-  return module;
-};
-
-/**
- * Get internal module script source
- * @param {string} scriptPath
- * @returns {Promise<string>} content
- */
-ScriptLinker.prototype.getInternalScriptSource = function getInternalScriptSource(scriptPath) {
-  const fileCache = this.fileCache;
-  let promisedContent = fileCache?.get(scriptPath);
-  if (promisedContent) return promisedContent;
-
-  promisedContent = fs.readFile(scriptPath).then((b) => {
-    const fileContent = b.toString();
-    let content = fileContent;
-    if (extname(scriptPath) === '.json') {
-      content = `export default ${fileContent};`;
-    }
-    return content;
-  });
-
-  fileCache?.set(scriptPath, promisedContent);
-
-  return promisedContent;
 };
 
 /**

@@ -42,48 +42,33 @@ declare module 'texample' {
 	/**
 	 * Script linker
 	 * @param packageDefinition package json
-	 * @param fileCache optional promised file cache
-	 */
-	export function ScriptLinker(packageDefinition: PackageDefinition, CWD: string, fileCache?: Map<string, Promise<string>>): void;
+	 * */
+	export function ScriptLinker(packageDefinition: PackageDefinition, CWD: string): void;
 	export class ScriptLinker {
 		/**
 		 * Script linker
 		 * @param packageDefinition package json
-		 * @param fileCache optional promised file cache
-		 */
-		constructor(packageDefinition: PackageDefinition, CWD: string, fileCache?: Map<string, Promise<string>>);
+		 * */
+		constructor(packageDefinition: PackageDefinition, CWD: string);
 		packageDefinition: PackageDefinition;
 		packageName: string;
-		module: any;
-		CWD: string;
 		
-		fileCache: Map<string, Promise<string>>;
-		linkFunction: (specifier: string, reference: any) => Promise<vm.SyntheticModule | vm.SourceTextModule>;
+		module: string;
+		CWD: string;
+		linkFunction: (specifier: string, reference: import('vm').Module) => Promise<vm.SyntheticModule>;
 		/**
 		 * Link function used when evaluating source text module, should not be used directly without binding it to itself
+		 * use linkFunction instead
 		 * */
-		link(specifier: string, reference: any): Promise<vm.SyntheticModule | vm.SourceTextModule>;
+		link(specifier: string, reference: import('vm').Module): Promise<vm.SyntheticModule>;
 		/**
 		 * Get current package module path
 		 * */
 		getPackageModule(specifier: string): string | undefined;
 		/**
-		 * Link script source
+		 * Link module
 		 * */
-		linkScriptSource(scriptPath: string, context: vm.Context): Promise<vm.SourceTextModule>;
-		/**
-		 * Link node module
-		 * */
-		linkNodeModule(identifier: string, reference: any): Promise<vm.SyntheticModule>;
-		/**
-		 * Link internal script
-		 * */
-		linkInternalScript(scriptPath: string, source: string, context: vm.Context): Promise<vm.SourceTextModule>;
-		/**
-		 * Get internal module script source
-		 * @returns content
-		 */
-		getInternalScriptSource(scriptPath: string): Promise<string>;
+		linkModule(identifier: string, reference: import('vm').Module): Promise<vm.SyntheticModule>;
 	}
   interface ExampleScript {
 	scriptSource: string;
@@ -98,6 +83,7 @@ declare module 'texample' {
   interface PackageDefinition {
 	name: string;
 	module?: string;
+	main?: string;
 	exports?: PackageDefinitionExports | Record<string, string> | Record<string, PackageDefinitionExports>;
   }
 }

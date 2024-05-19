@@ -29,8 +29,6 @@ export class ExampleEvaluator {
    * @param {number} [blockIdx]
    */
   async evaluate(blockIdx) {
-    const fileContentCache = new Map();
-
     const blocks = await this.getBlocks();
 
     for (let idx = 0; idx < blocks.length; idx++) {
@@ -40,7 +38,7 @@ export class ExampleEvaluator {
 
       this.sandbox.console?.log(`${idx}: ${this.identifier}:${lineOffset}`);
 
-      const loader = new ScriptLinker(this.packageDefinition, this.CWD, fileContentCache);
+      const loader = new ScriptLinker(this.packageDefinition, this.CWD);
       await script.link(loader.linkFunction);
       await script.evaluate();
     }
