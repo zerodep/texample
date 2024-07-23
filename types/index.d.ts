@@ -38,7 +38,6 @@ declare module 'texample' {
 		calculateLineOffset(content: string, charIdx: number): number;
 	}
 	export default ExampleEvaluator;
-	/// <reference types="node" />
 	/**
 	 * Script linker
 	 * @param packageDefinition package json
@@ -55,12 +54,12 @@ declare module 'texample' {
 		
 		module: string;
 		CWD: string;
-		linkFunction: (specifier: string, reference: import('vm').Module) => Promise<vm.SyntheticModule>;
+		linkFunction: (specifier: string, reference: import("vm").Module) => Promise<vm.SyntheticModule>;
 		/**
 		 * Link function used when evaluating source text module, should not be used directly without binding it to itself
 		 * use linkFunction instead
 		 * */
-		link(specifier: string, reference: import('vm').Module): Promise<vm.SyntheticModule>;
+		link(specifier: string, reference: import("vm").Module): Promise<vm.SyntheticModule>;
 		/**
 		 * Get current package module path
 		 * */
@@ -68,7 +67,7 @@ declare module 'texample' {
 		/**
 		 * Link module
 		 * */
-		linkModule(identifier: string, reference: import('vm').Module): Promise<vm.SyntheticModule>;
+		linkModule(identifier: string, reference: import("vm").Module): Promise<vm.SyntheticModule>;
 	}
   interface ExampleScript {
 	scriptSource: string;
@@ -86,6 +85,8 @@ declare module 'texample' {
 	main?: string;
 	exports?: PackageDefinitionExports | Record<string, string> | Record<string, PackageDefinitionExports>;
   }
+
+	export {};
 }
 
 //# sourceMappingURL=index.d.ts.map

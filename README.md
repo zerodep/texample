@@ -1,19 +1,20 @@
-# Execute your README markdown javascript examples
+# Execute your README markdown javascript ESM examples
 
 [![Build](https://github.com/zerodep/texample/actions/workflows/build.yaml/badge.svg)](https://github.com/zerodep/texample/actions/workflows/build.yaml)[![Coverage Status](https://coveralls.io/repos/github/zerodep/texample/badge.svg?branch=main)](https://coveralls.io/github/zerodep/texample?branch=main)
 
-# CLI
+## CLI
 
 Arguments
 
 - List of markdown files separated by comma (,)
 - Optional markdown block index number, from 0
+- [`-g`](#global-context) run with globalThis as context
 
 ```sh
 texample ./README.md,./docs/API.md
 ```
 
-# Example
+## Example
 
 Create a script that does the following:
 
@@ -45,4 +46,12 @@ const blockIdx = Number(process.argv[3]);
     }).evaluate(blockIdx);
   }
 })();
+```
+
+## Global context
+
+Modules with side-effects should run with `-g` flag since they probably change globalThis assignments.
+
+```sh
+texample ./test/docs/globals.md -g
 ```

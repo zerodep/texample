@@ -176,6 +176,31 @@ describe('markdown tester', () => {
     expect(logLines.length).to.be.above(0).and.below(allLogLinesLength);
   });
 
+  it('can be ran with globalThis as context', async () => {
+    const evaluator = new ExampleEvaluator(
+      './test/docs/globals.md',
+      {
+        name: 'my-module',
+        module: './test/src/my-module.mjs',
+        exports: {
+          '.': {
+            import: './test/src/my-module.mjs',
+          },
+          './sub-module': {
+            import: './test/src/sub-module.mjs',
+          },
+          './sub-require': {
+            require: './test/src/sub-require.cjs',
+          },
+        },
+      },
+      CWD,
+      globalThis,
+    );
+
+    await evaluator.evaluate();
+  });
+
   it('throws if sub-module is not found among exports', async () => {
     const logLines = [];
 

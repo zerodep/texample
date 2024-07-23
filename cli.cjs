@@ -12,8 +12,16 @@ const CWD = process.cwd();
 
 const packageDefinition = require(resolvePath(CWD, 'package.json'));
 
-const markdownFiles = process.argv[2] || './README.md';
-const blockIdx = Number(process.argv[3]);
+let globalContext = false;
+let blockIdx = NaN;
+let markdownFiles = './README.md';
+
+for (const arg of process.argv.slice(2, 4)) {
+  if (arg === undefined) break;
+  else if (arg === '-g') globalContext = true;
+  else if (!isNaN(Number(arg))) blockIdx = Number(arg);
+  else markdownFiles = arg;
+}
 
 run().catch((err) => {
   // eslint-disable-next-line no-console
@@ -23,13 +31,20 @@ run().catch((err) => {
 
 async function run() {
   for (const filePath of markdownFiles.split(',')) {
-    await new ExampleEvaluator(filePath, packageDefinition, CWD, {
-      Buffer,
-      process,
-      Date,
-      console,
-      setTimeout,
-      clearTimeout,
-    }).evaluate(blockIdx);
+    await new ExampleEvaluator(
+      filePath,
+      packageDefinition,
+      CWD,
+      globalContext
+        ? globalThis
+        : {
+            Buffer,
+            process,
+            Date,
+            console,
+            setTimeout,
+            clearTimeout,
+          },
+    ).evaluate(blockIdx);
   }
 }
