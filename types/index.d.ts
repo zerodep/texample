@@ -1,6 +1,6 @@
 declare module 'texample' {
 	import type { default as vm } from 'node:vm';
-	import type { SourceTextModule as SourceTextModule_1 } from 'vm';
+	import type { SourceTextModule } from 'vm';
 	export class ExampleEvaluator {
 		/**
 		 * Constructor
@@ -72,7 +72,7 @@ declare module 'texample' {
   interface ExampleScript {
 	scriptSource: string;
 	lineOffset: number;
-	script: SourceTextModule_1;
+	script: SourceTextModule;
   }
 
   interface PackageDefinitionExports {

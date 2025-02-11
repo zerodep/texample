@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [0.0.6] - 2024-07-123
+## [0.0.7] - 2025-02-10
+
+- bump some dev deps and some readme
+
+## [0.0.6] - 2024-07-13
 
 - introduce `-g` cli flag to work with modules with side effects
 
