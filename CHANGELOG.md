@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.8] - 2025-04-29
+
+- update readme
+
 ## [0.0.7] - 2025-02-10
 
 - bump some dev deps and some readme

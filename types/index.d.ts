@@ -1,7 +1,7 @@
 declare module 'texample' {
 	import type { default as vm } from 'node:vm';
 	import type { SourceTextModule } from 'vm';
-	export class ExampleEvaluator {
+	export default class ExampleEvaluator_1 {
 		/**
 		 * Constructor
 		 * @param markdownFilePath markdown file path with javascript examples
@@ -37,7 +37,6 @@ declare module 'texample' {
 		 * */
 		calculateLineOffset(content: string, charIdx: number): number;
 	}
-	export default ExampleEvaluator;
 	/**
 	 * Script linker
 	 * @param packageDefinition package json

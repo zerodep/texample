@@ -271,4 +271,20 @@ describe('markdown tester', () => {
 
     expect(err).to.be.instanceof(Error).and.have.property('code', 'ERR_MODULE_NOT_FOUND');
   });
+
+  it('ignores escaped javascript block', async () => {
+    const logLines = [];
+
+    const evaluator = new ExampleEvaluator('./test/docs/escape-backticks.md', { name: 'texample', module: './src/index.js' }, '.', {
+      console: {
+        log(...args) {
+          logLines.push(args);
+        },
+      },
+    });
+
+    await evaluator.evaluate();
+
+    expect(logLines.length).to.be.above(1);
+  });
 });
