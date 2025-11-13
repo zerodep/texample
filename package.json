@@ -1,6 +1,6 @@
 {
   "name": "texample",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "description": "Execute your README markdown javascript examples",
   "type": "module",
   "module": "./src/index.js",
@@ -48,12 +48,12 @@
   "license": "MIT",
   "devDependencies": {
     "@0dep/piso": "^3.0.1",
-    "@rollup/plugin-commonjs": "^28.0.2",
+    "@rollup/plugin-commonjs": "^29.0.0",
     "@types/chai": "^5.2.0",
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.12.11",
     "c8": "^10.1.2",
-    "chai": "^5.1.1",
+    "chai": "^6.0.1",
     "chronokinesis": "^7.0.0",
     "dts-buddy": "^0.6.1",
     "eslint": "^9.2.0",

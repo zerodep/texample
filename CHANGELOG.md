@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.0] - 2025-11-13
+
+- package provenance release
+
 ## [0.0.8] - 2025-04-29
 
 - update readme
