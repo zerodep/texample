@@ -38,3 +38,7 @@ config/_revision
 
 package-lock.json
 dist/
+
+# AI
+CLAUDE.md
+.claude

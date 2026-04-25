@@ -53,6 +53,7 @@ Arguments
 - List of markdown files separated by comma (,)
 - Optional markdown block index number, from 0
 - [`-g`](#global-context) run with globalThis as vm context
+- `-?` print usage and exit
 
 ```sh
 texample ./README.md,./docs/API.md

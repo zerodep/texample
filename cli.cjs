@@ -1,8 +1,26 @@
 'use strict';
 
+const process = require('node:process');
+
+if (process.argv.slice(2).includes('-?')) {
+  // eslint-disable-next-line no-console
+  console.log(`Usage: texample [files] [blockIdx] [-g] [-?]
+
+  files     comma-separated list of markdown files (default ./README.md)
+  blockIdx  0-based index of a single \`\`\`javascript block to run
+  -g        use globalThis as the vm context (for modules with global side-effects)
+  -?        show this help
+
+Examples:
+  texample ./README.md
+  texample ./README.md,./docs/API.md
+  texample ./README.md 2
+  texample ./test/docs/globals.md -g`);
+  return;
+}
+
 const vm = require('node:vm');
 const { resolve: resolvePath } = require('node:path');
-const process = require('node:process');
 
 const { ExampleEvaluator } = require('./dist/index.cjs');
 
