@@ -1,6 +1,7 @@
 import vm from 'node:vm';
 import { dirname, resolve as resolvePath, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 /**
  * Script linker
@@ -15,6 +16,7 @@ export function ScriptLinker(packageDefinition, CWD) {
   // @ts-ignore
   this.module = exports?.['.']?.import || exports?.import || packageDefinition.module || packageDefinition.main;
   this.CWD = CWD;
+  this.consumerRequire = createRequire(resolvePath(CWD, 'package.json'));
   this.linkFunction = this.link.bind(this);
 }
 
@@ -30,6 +32,17 @@ ScriptLinker.prototype.link = function link(specifier, reference) {
     specifier = resolvePath(this.CWD, modulePath);
   } else if (isRelative(specifier)) {
     specifier = resolvePath(dirname(fileURLToPath(reference.identifier)), specifier.split(sep).join(sep));
+  } else if (!specifier.startsWith('node:')) {
+    // Bare npm specifier: resolve from the consumer's project (this.CWD), not from
+    // texample's own node_modules. Without this anchor `await import('pino')` from
+    // dist/index.cjs would look in texample's tree and fail with ERR_MODULE_NOT_FOUND.
+    // If resolution fails (truly missing), fall through with the original specifier
+    // so dynamic import surfaces the ESM-style error the tests expect.
+    try {
+      specifier = this.consumerRequire.resolve(specifier);
+    } catch {
+      // intentionally swallowed
+    }
   }
 
   return this.linkModule(specifier, reference);

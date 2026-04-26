@@ -61,6 +61,7 @@ declare module 'texample' {
 		
 		module: string;
 		CWD: string;
+		consumerRequire: NodeJS.Require;
 		linkFunction: (specifier: string, reference: import("vm").Module) => Promise<vm.SyntheticModule>;
 		/**
 		 * Link function used when evaluating source text module, should not be used directly without binding it to itself

@@ -3,7 +3,7 @@ import commonjs from '@rollup/plugin-commonjs';
 export default [
   {
     input: './src/index.js',
-    external: ['node:vm', 'node:path', 'node:fs', 'node:fs/promises', 'node:url'],
+    external: ['node:vm', 'node:path', 'node:fs/promises', 'node:url', 'node:module'],
     plugins: [commonjs()],
     output: [
       {

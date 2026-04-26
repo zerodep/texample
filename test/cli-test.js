@@ -3,19 +3,7 @@ import { fork } from 'node:child_process';
 const CLI = './cli.cjs';
 const BIN = new URL('../bin/texample.cjs', import.meta.url).pathname;
 
-async function runCli(args = []) {
-  // Node 20.20.2 has a V8 JIT segfault that occasionally kills children after
-  // several vm.SourceTextModule evaluations in a row (~10% on test/docs/README.md
-  // with @0dep/piso). Crash is in V8 itself — happens during teardown after the
-  // example has fully run. We retry up to 2 times on SIGSEGV; normal failures
-  // (non-zero exit codes) are returned untouched on the first try.
-  for (let attempt = 0; ; attempt++) {
-    const result = await spawnCli(args);
-    if (result.signal !== 'SIGSEGV' || attempt >= 2) return result;
-  }
-}
-
-function spawnCli(args) {
+function runCli(args = []) {
   return new Promise((resolve, reject) => {
     const child = fork(CLI, args, {
       execArgv: ['--experimental-vm-modules', '--no-warnings'],
@@ -27,7 +15,7 @@ function spawnCli(args) {
     child.stdout.on('data', (b) => (stdout += b.toString()));
     child.stderr.on('data', (b) => (stderr += b.toString()));
     child.on('error', reject);
-    child.on('exit', (code, signal) => resolve({ code, signal, stdout, stderr }));
+    child.on('exit', (code) => resolve({ code, stdout, stderr }));
   });
 }
 
