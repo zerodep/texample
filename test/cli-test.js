@@ -119,6 +119,13 @@ describe('cli', () => {
     expect(code, stderr).to.equal(0);
   });
 
+  it('-i silences the failure exit code while still writing the error to stderr', async () => {
+    const { code, stderr } = await runCli(['./does-not-exist.md', '-i']);
+
+    expect(code).to.equal(0);
+    expect(stderr).to.match(/ENOENT|no such file/i);
+  });
+
   it('exits with code 1 and writes to stderr when the markdown file does not exist', async () => {
     const { code, stderr } = await runCli(['./does-not-exist.md']);
 

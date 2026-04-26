@@ -293,6 +293,28 @@ describe('markdown tester', () => {
     expect(probe.url).to.match(/test\/docs\/import-meta-probe\/setup\.mjs$/);
   });
 
+  it('propagates errors thrown by a setupFiles entry with the stack pointing at the setup file', async () => {
+    const evaluator = new ExampleEvaluator(
+      './test/docs/escape-backticks.md',
+      { name: 'texample', module: './src/index.js' },
+      '.',
+      { console: { log() {} } },
+      ['./test/docs/throw-setup/setup.mjs'],
+    );
+
+    let err;
+    try {
+      await evaluator.evaluate();
+    } catch (e) {
+      err = e;
+    }
+
+    expect(err).to.have.property('message', 'boom from setup');
+    // line 4 in setup.mjs is `throw new Error(reason);` — the example markdown
+    // is never reached because the setup throws first.
+    expect(err.stack).to.match(/throw-setup\/setup\.mjs:4:\d+/);
+  });
+
   it('runs each setupFiles entry as ESM in the same vm context before example blocks (lineOffset stays relative to example source)', async () => {
     const evaluator = new ExampleEvaluator(
       './test/docs/deny-fetch/deny-fetch.md',
@@ -310,7 +332,9 @@ describe('markdown tester', () => {
     }
 
     expect(err).to.have.property('message', 'fetch denied');
-    expect(err.stack).to.match(/deny-fetch\.md:\d+/);
+    // line 7 in deny-fetch.md is `await fetch('https://example.com');` — pinning to
+    // the exact line catches off-by-N regressions in lineOffset bookkeeping.
+    expect(err.stack).to.match(/deny-fetch\.md:7:\d+/);
   });
 
   it('ignores escaped javascript block', async () => {

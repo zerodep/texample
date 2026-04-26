@@ -54,6 +54,7 @@ Arguments
 - Optional markdown block index number, from 0
 - [`-r <path>`](#vm-context-setup) ESM file run inside the vm context before the example (repeatable)
 - [`-c <path>`](#config-file) JSON config file with `require` and `node-option`
+- `-i` exit 0 even when an example throws (errors still print to stderr)
 - `-?` print usage and exit
 
 ```sh

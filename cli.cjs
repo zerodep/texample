@@ -4,7 +4,7 @@ const process = require('node:process');
 
 if (process.argv.slice(2).includes('-?')) {
   // eslint-disable-next-line no-console
-  console.log(`Usage: texample [files] [blockIdx] [-r <file>]... [-c <config>] [-?]
+  console.log(`Usage: texample [files] [blockIdx] [-r <file>]... [-c <config>] [-i] [-?]
 
   files       comma-separated list of markdown files (default ./README.md)
   blockIdx    0-based index of a single \`\`\`javascript block to run
@@ -19,6 +19,8 @@ if (process.argv.slice(2).includes('-?')) {
               --no-warnings) and forwarded as --<option> in execArgv. Use this
               for process-level setup that has to be in place before texample
               itself can run (e.g. extra Node flags, host-process polyfills).
+  -i          exit 0 even when an example throws — errors are still printed to
+              stderr, but the process status is silenced.
   -?          show this help
 
 The vm context defaults to globalThis — examples have access to fetch,
@@ -47,12 +49,14 @@ const packageDefinition = require(resolvePath(CWD, 'package.json'));
 
 let blockIdx = NaN;
 let markdownFiles = './README.md';
+let ignoreExit = false;
 const setupFiles = [];
 
 const argv = process.argv.slice(2);
 for (let i = 0; i < argv.length; i++) {
   const arg = argv[i];
   if (arg === '-g') continue;
+  else if (arg === '-i') ignoreExit = true;
   else if (arg === '-r') setupFiles.push(argv[++i]);
   else if (!isNaN(Number(arg))) blockIdx = Number(arg);
   else markdownFiles = arg;
@@ -61,7 +65,7 @@ for (let i = 0; i < argv.length; i++) {
 run().catch((err) => {
   // eslint-disable-next-line no-console
   console.error(err.stack);
-  process.exitCode = 1;
+  if (!ignoreExit) process.exitCode = 1;
 });
 
 async function run() {

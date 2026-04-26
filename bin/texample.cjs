@@ -12,9 +12,11 @@ run();
 function run() {
   const argv = process.argv.slice(2);
   let configPath;
+  let ignoreExit = false;
   const childArgs = [];
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '-c') configPath = argv[++i];
+    else if (argv[i] === '-i') ignoreExit = true;
     else childArgs.push(argv[i]);
   }
 
@@ -25,9 +27,12 @@ function run() {
     const isPath = r.startsWith('.') || r.startsWith('/');
     return ['-r', isPath ? path.resolve(configDir, r) : require.resolve(r)];
   });
+  if (ignoreExit) childArgs.push('-i');
 
   const child = fork(cli, [...requires, ...childArgs], { execArgv: nodeOptions });
-  child.on('exit', (code) => {
-    process.exitCode = code ?? 0;
-  });
+  if (!ignoreExit) {
+    child.on('exit', (code) => {
+      process.exitCode = code ?? 0;
+    });
+  }
 }

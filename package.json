@@ -52,7 +52,7 @@
     "@rollup/plugin-commonjs": "^29.0.0",
     "@types/chai": "^5.2.0",
     "@types/mocha": "^10.0.6",
-    "@types/node": "^20.19.39",
+    "@types/node": "^22.19.17",
     "c8": "^11.0.0",
     "chai": "^6.0.1",
     "chronokinesis": "^8.0.0",
