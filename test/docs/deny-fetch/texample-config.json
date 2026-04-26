@@ -1,0 +1,4 @@
+{
+  "require": ["./deny-fetch-setup.mjs"],
+  "node-option": ["no-deprecation"]
+}

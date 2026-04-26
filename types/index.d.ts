@@ -7,9 +7,12 @@ declare module 'texample' {
 		 * @param markdownFilePath markdown file path with javascript examples
 		 * @param packageDefinition package.json
 		 * @param CWD current working directory
-		 * @param sandbox object passed to vm.createContext
+		 * @param vmContext object passed to vm.createContext as the sandbox; defaults
+		 *   to globalThis (giving examples a fully fledged Node global scope). Pass a custom
+		 *   object to opt into an isolated sandbox.
+		 * @param setupFiles files evaluated as ESM in the same vm context before example blocks
 		 */
-		constructor(markdownFilePath: string, packageDefinition: PackageDefinition, CWD: string, sandbox?: any);
+		constructor(markdownFilePath: string, packageDefinition: PackageDefinition, CWD: string, vmContext?: any, setupFiles?: string[]);
 		exampleFile: string;
 		packageDefinition: PackageDefinition;
 		CWD: string;
@@ -17,11 +20,16 @@ declare module 'texample' {
 		prevCharIdx: number;
 		identifier: string;
 		sandbox: any;
+		setupFiles: string[];
 		/**
 		 * Evaluate markdown
 		 * 
 		 */
 		evaluate(blockIdx?: number): Promise<void>;
+		/**
+		 * Parse a setup file as a SourceTextModule sharing the example's vm context
+		 * */
+		parseSetup(setupFile: string): Promise<vm.SourceTextModule>;
 		/**
 		 * Get example blocks
 		 */
@@ -64,7 +72,10 @@ declare module 'texample' {
 		 * */
 		getPackageModule(specifier: string): string | undefined;
 		/**
-		 * Link module
+		 * Link module — host-imports the resolved specifier and wraps it in a SyntheticModule so the
+		 * exports are visible inside the vm context. With the default `vmContext = globalThis` the host
+		 * realm and vm realm share globals, so module-level mutations from these imports (e.g. nock's
+		 * fetch interception, chronokinesis's `Date = FakeDate`) are observable to the example.
 		 * */
 		linkModule(identifier: string, reference: import("vm").Module): Promise<vm.SyntheticModule>;
 	}

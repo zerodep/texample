@@ -1,11 +1,39 @@
 import { fork } from 'node:child_process';
 
 const CLI = './cli.cjs';
+const BIN = new URL('../bin/texample.cjs', import.meta.url).pathname;
 
-function runCli(args = []) {
+async function runCli(args = []) {
+  // Node 20.20.2 has a V8 JIT segfault that occasionally kills children after
+  // several vm.SourceTextModule evaluations in a row (~10% on test/docs/README.md
+  // with @0dep/piso). Crash is in V8 itself — happens during teardown after the
+  // example has fully run. We retry up to 2 times on SIGSEGV; normal failures
+  // (non-zero exit codes) are returned untouched on the first try.
+  for (let attempt = 0; ; attempt++) {
+    const result = await spawnCli(args);
+    if (result.signal !== 'SIGSEGV' || attempt >= 2) return result;
+  }
+}
+
+function spawnCli(args) {
   return new Promise((resolve, reject) => {
     const child = fork(CLI, args, {
       execArgv: ['--experimental-vm-modules', '--no-warnings'],
+      stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+    });
+
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (b) => (stdout += b.toString()));
+    child.stderr.on('data', (b) => (stderr += b.toString()));
+    child.on('error', reject);
+    child.on('exit', (code, signal) => resolve({ code, signal, stdout, stderr }));
+  });
+}
+
+function runBin(args = []) {
+  return new Promise((resolve, reject) => {
+    const child = fork(BIN, args, {
       stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
     });
 
@@ -45,8 +73,8 @@ describe('cli', () => {
     expect(headers[0]).to.match(/^0: /);
   });
 
-  it('runs with -g and uses globalThis as the vm context for global side-effects', async () => {
-    const { code, stderr } = await runCli(['./test/docs/globals.md', '-g']);
+  it('runs the globals.md example using globalThis as the vm context (default)', async () => {
+    const { code, stderr } = await runCli(['./test/docs/globals.md']);
 
     expect(code, stderr).to.equal(0);
   });
@@ -64,8 +92,43 @@ describe('cli', () => {
 
     expect(code, stderr).to.equal(0);
     expect(stdout).to.match(/usage/i);
-    expect(stdout).to.match(/-g/);
+    expect(stdout).to.match(/-r/);
+    expect(stdout).to.match(/-c/);
     expect(stdout).to.match(/-\?/);
+  });
+
+  it('freezes Date via -r chronokinesis setup, asserts with chai expect, sees NODE_ENV=test from .mocharc.json via -c', async () => {
+    const { code, stderr } = await runBin([
+      './test/docs/frozen-date/frozen-date.md',
+      '-r',
+      './test/docs/frozen-date/frozen-date-setup.mjs',
+      '-c',
+      './.mocharc.json',
+    ]);
+
+    expect(code, stderr).to.equal(0);
+  });
+
+  it('-r loads mocha and nock so the example can use describe/it/expect against an intercepted fetch', async () => {
+    const { code, stderr } = await runCli([
+      './test/docs/mocha-example/mocha-example.md',
+      '-r',
+      './test/docs/mocha-example/mocha-setup.mjs',
+    ]);
+
+    expect(code, stderr).to.equal(0);
+  });
+
+  it('runs every -r <path> file in the vm context before the example, allowing fetch to be intercepted by nock', async () => {
+    const { code, stderr } = await runCli(['./test/docs/mock-fetch/mock-fetch.md', '-r', './test/docs/mock-fetch/mock-fetch-setup.mjs']);
+
+    expect(code, stderr).to.equal(0);
+  });
+
+  it('reads the config passed via -c <path> and applies require + node-option to the child process', async () => {
+    const { code, stderr } = await runBin(['./test/docs/mock-fetch/mock-fetch.md', '-c', './test/docs/mock-fetch/texample-config.json']);
+
+    expect(code, stderr).to.equal(0);
   });
 
   it('exits with code 1 and writes to stderr when the markdown file does not exist', async () => {

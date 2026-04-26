@@ -56,11 +56,14 @@ ScriptLinker.prototype.getPackageModule = function getPackageModule(specifier) {
 };
 
 /**
- * Link module
+ * Link module — host-imports the resolved specifier and wraps it in a SyntheticModule so the
+ * exports are visible inside the vm context. With the default `vmContext = globalThis` the host
+ * realm and vm realm share globals, so module-level mutations from these imports (e.g. nock's
+ * fetch interception, chronokinesis's `Date = FakeDate`) are observable to the example.
  * @param {string} identifier
  * @param {import('vm').Module} reference
  */
-ScriptLinker.prototype.linkModule = async function linkNodeModule(identifier, reference) {
+ScriptLinker.prototype.linkModule = async function linkModule(identifier, reference) {
   const imported = await import(identifier);
   const exported = Object.keys(imported);
 

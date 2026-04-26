@@ -13,16 +13,20 @@ export class ExampleEvaluator {
    * @param {string} markdownFilePath markdown file path with javascript examples
    * @param {import('types').PackageDefinition} packageDefinition package.json
    * @param {string} CWD current working directory
-   * @param {any} [sandbox] object passed to vm.createContext
+   * @param {any} [vmContext] object passed to vm.createContext as the sandbox; defaults
+   *   to globalThis (giving examples a fully fledged Node global scope). Pass a custom
+   *   object to opt into an isolated sandbox.
+   * @param {string[]} [setupFiles] files evaluated as ESM in the same vm context before example blocks
    */
-  constructor(markdownFilePath, packageDefinition, CWD, sandbox) {
+  constructor(markdownFilePath, packageDefinition, CWD, vmContext, setupFiles) {
     const exampleFile = (this.exampleFile = resolvePath(CWD, markdownFilePath));
     this.packageDefinition = packageDefinition;
     this.CWD = CWD;
     this.line = 0;
     this.prevCharIdx = 0;
     this.identifier = pathToFileURL(exampleFile).toString();
-    this.sandbox = sandbox;
+    this.sandbox = vmContext ?? globalThis;
+    this.setupFiles = (setupFiles ?? []).map((f) => resolvePath(CWD, f));
   }
   /**
    * Evaluate markdown
@@ -30,6 +34,13 @@ export class ExampleEvaluator {
    */
   async evaluate(blockIdx) {
     const blocks = await this.getBlocks();
+
+    for (const setupFile of this.setupFiles) {
+      const setupModule = await this.parseSetup(setupFile);
+      const loader = new ScriptLinker(this.packageDefinition, this.CWD);
+      await setupModule.link(loader.linkFunction);
+      await setupModule.evaluate();
+    }
 
     for (let idx = 0; idx < blocks.length; idx++) {
       const { script, lineOffset } = blocks[idx];
@@ -42,6 +53,21 @@ export class ExampleEvaluator {
       await script.link(loader.linkFunction);
       await script.evaluate();
     }
+  }
+  /**
+   * Parse a setup file as a SourceTextModule sharing the example's vm context
+   * @param {string} setupFile
+   */
+  async parseSetup(setupFile) {
+    const source = (await fs.readFile(setupFile)).toString();
+    const identifier = pathToFileURL(setupFile).toString();
+    return new vm.SourceTextModule(source, {
+      identifier,
+      context: vm.createContext(this.sandbox, { name: this.packageDefinition.name }),
+      initializeImportMeta(meta) {
+        meta.url = identifier;
+      },
+    });
   }
   /**
    * Get example blocks

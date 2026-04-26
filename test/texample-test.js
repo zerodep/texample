@@ -272,6 +272,47 @@ describe('markdown tester', () => {
     expect(err).to.be.instanceof(Error).and.have.property('code', 'ERR_MODULE_NOT_FOUND');
   });
 
+  it('defaults vmContext to globalThis when not passed', () => {
+    const evaluator = new ExampleEvaluator('./test/docs/escape-backticks.md', { name: 'texample', module: './src/index.js' }, '.');
+
+    expect(evaluator.sandbox).to.equal(globalThis);
+  });
+
+  it("initializes setup file's import.meta.url to the setup file's URL", async () => {
+    const probe = {};
+    const evaluator = new ExampleEvaluator(
+      './test/docs/escape-backticks.md',
+      { name: 'texample', module: './src/index.js' },
+      '.',
+      { console: { log() {} }, probe },
+      ['./test/docs/import-meta-probe/setup.mjs'],
+    );
+
+    await evaluator.evaluate();
+
+    expect(probe.url).to.match(/test\/docs\/import-meta-probe\/setup\.mjs$/);
+  });
+
+  it('runs each setupFiles entry as ESM in the same vm context before example blocks (lineOffset stays relative to example source)', async () => {
+    const evaluator = new ExampleEvaluator(
+      './test/docs/deny-fetch/deny-fetch.md',
+      { name: 'texample', module: './src/index.js' },
+      '.',
+      { console: { log() {} } },
+      ['./test/docs/deny-fetch/deny-fetch-setup.mjs'],
+    );
+
+    let err;
+    try {
+      await evaluator.evaluate();
+    } catch (e) {
+      err = e;
+    }
+
+    expect(err).to.have.property('message', 'fetch denied');
+    expect(err.stack).to.match(/deny-fetch\.md:\d+/);
+  });
+
   it('ignores escaped javascript block', async () => {
     const logLines = [];
 

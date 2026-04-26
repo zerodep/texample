@@ -1,0 +1,4 @@
+{
+  "require": ["./mock-fetch-setup.mjs"],
+  "node-option": ["no-deprecation"]
+}

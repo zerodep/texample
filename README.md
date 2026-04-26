@@ -52,19 +52,40 @@ Arguments
 
 - List of markdown files separated by comma (,)
 - Optional markdown block index number, from 0
-- [`-g`](#global-context) run with globalThis as vm context
+- [`-r <path>`](#vm-context-setup) ESM file run inside the vm context before the example (repeatable)
+- [`-c <path>`](#config-file) JSON config file with `require` and `node-option`
 - `-?` print usage and exit
 
 ```sh
 texample ./README.md,./docs/API.md
 ```
 
-## Global context
+The vm context is `globalThis`, so examples have access to `fetch`, `EventTarget`, `performance`, and the rest of Node's runtime by default. Each invocation runs in its own forked child process, so anything an example writes to `globalThis` is thrown away when the run ends.
 
-Modules with side-effects should run with `-g` flag since they probably change globalThis assignments.
+## Vm context setup
+
+Pass one or more `-r <path>` flags to evaluate ESM files inside the example's vm context before the example runs. Repeating the flag chains multiple setup files in order. Each file is loaded as a `SourceTextModule` sharing the example's context, so it can mutate the sandbox (e.g. replace `globalThis.fetch`, freeze `Date`) and the example sees those mutations. The example's `lineOffset` stays relative to the markdown source.
 
 ```sh
-texample ./test/docs/globals.md -g
+texample ./example.md -r ./deny-fetch.mjs -r ./mock-time.mjs
+```
+
+## Config file
+
+`-c <path>` covers a different need than `-r`: it is for process-level setup that has to be in place before texample itself can run — Node CLI flags or modules that must be imported at process startup. There is no auto-discovered config file; pass one explicitly. The config is plain JSON:
+
+```json
+{
+  "require": ["./deny-fetch-setup.mjs"],
+  "node-option": ["experimental-vm-modules", "no-warnings"]
+}
+```
+
+- `require` — list of files forwarded as `-r` setup files (resolved relative to the config file's directory; bare specifiers like `chai/register-expect.js` are resolved via `node_modules`). They run inside the example's vm context.
+- `node-option` — entries are appended to the always-on defaults (`--experimental-vm-modules --no-warnings`) and forwarded as `--<option>` in the child's `execArgv`. You never need to redeclare the defaults — supplying `node-option` is purely additive.
+
+```sh
+texample ./example.md -c ./texample-config.json
 ```
 
 ## Customization example

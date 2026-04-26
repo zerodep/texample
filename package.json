@@ -1,6 +1,6 @@
 {
   "name": "texample",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Execute your README markdown javascript examples",
   "type": "module",
   "module": "./src/index.js",
@@ -52,7 +52,7 @@
     "@rollup/plugin-commonjs": "^29.0.0",
     "@types/chai": "^5.2.0",
     "@types/mocha": "^10.0.6",
-    "@types/node": "^20.12.11",
+    "@types/node": "^20.19.39",
     "c8": "^11.0.0",
     "chai": "^6.0.1",
     "chronokinesis": "^8.0.0",

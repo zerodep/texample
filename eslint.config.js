@@ -66,11 +66,11 @@ export default [
     rules,
   },
   {
-    files: ['**/*.js'],
+    files: ['**/*.js', '**/*.mjs'],
     languageOptions: {
       parserOptions: {
         sourceType: 'module',
-        ecmaVersion: 2020,
+        ecmaVersion: 'latest',
       },
       globals: {
         ...globals.node,
@@ -113,6 +113,6 @@ export default [
     },
   },
   {
-    ignores: ['coverage/**/*', 'node_modules/**/*', 'tmp/*', 'dist/*', '**/*.mjs'],
+    ignores: ['coverage/**/*', 'node_modules/**/*', 'tmp/*', 'dist/*'],
   },
 ];
