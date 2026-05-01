@@ -1,7 +1,8 @@
 import { fork } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const CLI = './cli.cjs';
-const BIN = new URL('../bin/texample.cjs', import.meta.url).pathname;
+const BIN = fileURLToPath(new URL('../bin/texample.cjs', import.meta.url));
 
 function runCli(args = []) {
   return new Promise((resolve, reject) => {
