@@ -4,6 +4,13 @@ import { fileURLToPath } from 'node:url';
 const CLI = './cli.cjs';
 const BIN = fileURLToPath(new URL('../bin/texample.cjs', import.meta.url));
 
+// Normalize CRLF to LF so multiline regex anchors (`$`) work cross-platform —
+// JS /m only treats `\n` as a line terminator, so a stray `\r` before `\n` on
+// Windows blocks `…:\d+$` from matching.
+function normalize(s) {
+  return s.replace(/\r\n/g, '\n');
+}
+
 function runCli(args = []) {
   return new Promise((resolve, reject) => {
     const child = fork(CLI, args, {
@@ -16,7 +23,7 @@ function runCli(args = []) {
     child.stdout.on('data', (b) => (stdout += b.toString()));
     child.stderr.on('data', (b) => (stderr += b.toString()));
     child.on('error', reject);
-    child.on('exit', (code) => resolve({ code, stdout, stderr }));
+    child.on('exit', (code) => resolve({ code, stdout: normalize(stdout), stderr: normalize(stderr) }));
   });
 }
 
@@ -31,7 +38,7 @@ function runBin(args = []) {
     child.stdout.on('data', (b) => (stdout += b.toString()));
     child.stderr.on('data', (b) => (stderr += b.toString()));
     child.on('error', reject);
-    child.on('exit', (code) => resolve({ code, stdout, stderr }));
+    child.on('exit', (code) => resolve({ code, stdout: normalize(stdout), stderr: normalize(stderr) }));
   });
 }
 
