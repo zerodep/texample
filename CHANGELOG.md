@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ## v1.0.1 - 2026-05-01
 
-- make script linker Windows friendly
+- make package Windows friendly
 
 ## v1.0.0 - 2026-04-26
 
