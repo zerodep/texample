@@ -5,7 +5,8 @@ import fs from 'node:fs/promises';
 export { ScriptLinker } from './script-linker.js';
 import { ScriptLinker } from './script-linker.js';
 
-const exPattern = /```javascript\n([\s\S]*?)```/gi;
+// `\r?\n` so CRLF-checked-out markdown (Windows / git autocrlf) still matches.
+const exPattern = /```javascript\r?\n([\s\S]*?)```/gi;
 
 export class ExampleEvaluator {
   /**

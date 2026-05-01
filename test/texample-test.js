@@ -1,6 +1,8 @@
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { resolve as resolvePath } from 'node:path';
+import { tmpdir } from 'node:os';
+import fs from 'node:fs/promises';
 
 import ExampleEvaluator from '../src/index.js';
 
@@ -335,6 +337,32 @@ describe('markdown tester', () => {
     // line 7 in deny-fetch.md is `await fetch('https://example.com');` — pinning to
     // the exact line catches off-by-N regressions in lineOffset bookkeeping.
     expect(err.stack).to.match(/deny-fetch\.md:7:\d+/);
+  });
+
+  it('detects javascript blocks in markdown that uses CRLF line endings (Windows checkout)', async () => {
+    const source = await fs.readFile(resolvePath(CWD, 'test/docs/README.md'), 'utf8');
+    const crlfSource = source.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
+    const tmpFile = resolvePath(tmpdir(), `texample-crlf-${process.pid}-${Date.now()}.md`);
+    await fs.writeFile(tmpFile, crlfSource);
+
+    try {
+      const logLines = [];
+      const evaluator = new ExampleEvaluator(tmpFile, packageDefinition, CWD, {
+        Date,
+        process: { argv: [], cwd: () => CWD },
+        console: {
+          log(...args) {
+            logLines.push(args);
+          },
+        },
+      });
+      await evaluator.evaluate();
+
+      const headerLines = logLines.map((args) => args[0]).filter((s) => typeof s === 'string' && /^\d+: file:\/\//.test(s));
+      expect(headerLines.length).to.be.above(0);
+    } finally {
+      await fs.rm(tmpFile, { force: true });
+    }
   });
 
   it('ignores escaped javascript block', async () => {
