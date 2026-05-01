@@ -2,7 +2,7 @@
 
 Execute your README markdown javascript ESM examples to make sure they run as expected.
 
-[![Build](https://github.com/zerodep/texample/actions/workflows/build.yaml/badge.svg)](https://github.com/zerodep/texample/actions/workflows/build.yaml)[![Coverage Status](https://coveralls.io/repos/github/zerodep/texample/badge.svg?branch=main)](https://coveralls.io/github/zerodep/texample?branch=main)
+[![Build](https://github.com/zerodep/texample/actions/workflows/build.yaml/badge.svg)](https://github.com/zerodep/texample/actions/workflows/build.yaml)[![Coverage Status](https://coveralls.io/repos/github/zerodep/texample/badge.svg?branch=main)](https://coveralls.io/github/zerodep/texample?branch=main)[![Build (Windows)](https://github.com/zerodep/texample/actions/workflows/build-windows.yaml/badge.svg)](https://github.com/zerodep/texample/actions/workflows/build-windows.yaml)
 
 ## Introduction
 
