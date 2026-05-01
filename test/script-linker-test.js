@@ -39,6 +39,22 @@ describe('ScriptLinker', () => {
       expect(captured).to.match(/sub-module\.mjs$/);
     });
 
+    it('resolves relative specifiers against reference.identifier rather than the consumer (cross-platform — ESM specifiers use `/` regardless of OS)', async () => {
+      const linker = new ScriptLinker({ name: 'consumer-pkg' }, CWD);
+
+      let captured;
+      linker.linkModule = function linkModule(identifier) {
+        captured = identifier;
+        return Promise.resolve();
+      };
+
+      const reference = { identifier: pathToFileURL(resolvePath(CWD, 'node_modules/chai/register-expect.js')).toString() };
+      await linker.link('./index.js', reference);
+
+      expect(captured).to.match(/^file:\/\//);
+      expect(captured).to.match(/node_modules\/chai\/index\.js$/);
+    });
+
     it('passes a file:// URL to linkModule when resolving a bare npm specifier from the consumer', async () => {
       const linker = new ScriptLinker({ name: 'texample' }, CWD);
 

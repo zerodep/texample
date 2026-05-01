@@ -1,5 +1,5 @@
 import vm from 'node:vm';
-import { dirname, resolve as resolvePath, sep } from 'node:path';
+import { dirname, resolve as resolvePath } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
@@ -31,7 +31,7 @@ ScriptLinker.prototype.link = function link(specifier, reference) {
   if ((modulePath = this.getPackageModule(specifier))) {
     specifier = pathToFileURL(resolvePath(this.CWD, modulePath)).href;
   } else if (isRelative(specifier)) {
-    specifier = pathToFileURL(resolvePath(dirname(fileURLToPath(reference.identifier)), specifier.split(sep).join(sep))).href;
+    specifier = pathToFileURL(resolvePath(dirname(fileURLToPath(reference.identifier)), specifier)).href;
   } else if (!specifier.startsWith('node:')) {
     // Bare npm specifier: resolve from the consumer's project (this.CWD), not from
     // texample's own node_modules. Without this anchor `await import('pino')` from
@@ -92,10 +92,11 @@ ScriptLinker.prototype.linkModule = async function linkModule(identifier, refere
 };
 
 /**
- * Path is relative
+ * Path is relative. ESM specifiers always use forward slashes regardless of OS,
+ * so we do not split on `path.sep` (which would miss `./foo` on Windows where
+ * sep is `\\`).
  * @param {string} p path
  */
 function isRelative(p) {
-  const p0 = p.split(sep).shift();
-  return p0 === '.' || p0 === '..';
+  return p === '.' || p === '..' || p.startsWith('./') || p.startsWith('../');
 }
