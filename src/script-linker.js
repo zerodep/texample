@@ -1,6 +1,6 @@
 import vm from 'node:vm';
 import { dirname, resolve as resolvePath, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
 /**
@@ -29,17 +29,19 @@ export function ScriptLinker(packageDefinition, CWD) {
 ScriptLinker.prototype.link = function link(specifier, reference) {
   let modulePath;
   if ((modulePath = this.getPackageModule(specifier))) {
-    specifier = resolvePath(this.CWD, modulePath);
+    specifier = pathToFileURL(resolvePath(this.CWD, modulePath)).href;
   } else if (isRelative(specifier)) {
-    specifier = resolvePath(dirname(fileURLToPath(reference.identifier)), specifier.split(sep).join(sep));
+    specifier = pathToFileURL(resolvePath(dirname(fileURLToPath(reference.identifier)), specifier.split(sep).join(sep))).href;
   } else if (!specifier.startsWith('node:')) {
     // Bare npm specifier: resolve from the consumer's project (this.CWD), not from
     // texample's own node_modules. Without this anchor `await import('pino')` from
     // dist/index.cjs would look in texample's tree and fail with ERR_MODULE_NOT_FOUND.
+    // The resolved path must be a file:// URL so dynamic import works on Windows,
+    // where `C:\...` would otherwise be parsed as a `c:` URL scheme.
     // If resolution fails (truly missing), fall through with the original specifier
     // so dynamic import surfaces the ESM-style error the tests expect.
     try {
-      specifier = this.consumerRequire.resolve(specifier);
+      specifier = pathToFileURL(this.consumerRequire.resolve(specifier)).href;
     } catch {
       // intentionally swallowed
     }

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## v1.0.1 - 2026-05-01
+
+- make script linker Windows friendly
+
 ## v1.0.0 - 2026-04-26
 
 Let Claude come in and fix stuff.
