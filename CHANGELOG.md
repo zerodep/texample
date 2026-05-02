@@ -4,7 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## v1.0.2 - 2026-05-02
+
+- support dynamic import in examples
+
 ## v1.0.1 - 2026-05-01
+
+Labour day release.
 
 - make package Windows friendly
 

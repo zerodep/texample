@@ -82,13 +82,19 @@ ScriptLinker.prototype.linkModule = async function linkModule(identifier, refere
   const imported = await import(identifier);
   const exported = Object.keys(imported);
 
-  return new vm.SyntheticModule(
+  const synthetic = new vm.SyntheticModule(
     exported,
     function evaluateCallback() {
       exported.forEach((key) => this.setExport(key, imported[key]));
     },
     { identifier, context: reference.context },
   );
+  // Link + evaluate eagerly so the module is usable both as a static-link result
+  // (Node would do this anyway) and as the value returned to a dynamic import()
+  // callback, where the host does NOT re-link/evaluate before reading namespace.
+  await synthetic.link(() => {});
+  await synthetic.evaluate();
+  return synthetic;
 };
 
 /**

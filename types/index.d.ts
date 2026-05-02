@@ -21,6 +21,8 @@ declare module 'texample' {
 		identifier: string;
 		sandbox: any;
 		setupFiles: string[];
+		loader: ScriptLinker_1;
+		importModuleDynamically: (specifier: any, referrer: any) => Promise<vm.SyntheticModule>;
 		/**
 		 * Evaluate markdown
 		 * 
@@ -49,8 +51,8 @@ declare module 'texample' {
 	 * Script linker
 	 * @param packageDefinition package json
 	 * */
-	export function ScriptLinker(packageDefinition: PackageDefinition, CWD: string): void;
-	export class ScriptLinker {
+	function ScriptLinker_1(packageDefinition: PackageDefinition, CWD: string): void;
+	class ScriptLinker_1 {
 		/**
 		 * Script linker
 		 * @param packageDefinition package json
@@ -97,7 +99,7 @@ declare module 'texample' {
 	exports?: PackageDefinitionExports | Record<string, string> | Record<string, PackageDefinitionExports>;
   }
 
-	export {};
+	export { ScriptLinker_1 as ScriptLinker };
 }
 
 //# sourceMappingURL=index.d.ts.map

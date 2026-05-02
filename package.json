@@ -1,6 +1,6 @@
 {
   "name": "texample",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Execute your README markdown javascript examples",
   "type": "module",
   "module": "./src/index.js",

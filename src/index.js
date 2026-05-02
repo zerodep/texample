@@ -28,6 +28,8 @@ export class ExampleEvaluator {
     this.identifier = pathToFileURL(exampleFile).toString();
     this.sandbox = vmContext ?? globalThis;
     this.setupFiles = (setupFiles ?? []).map((f) => resolvePath(CWD, f));
+    this.loader = new ScriptLinker(packageDefinition, CWD);
+    this.importModuleDynamically = (specifier, referrer) => this.loader.link(specifier, referrer);
   }
   /**
    * Evaluate markdown
@@ -38,8 +40,7 @@ export class ExampleEvaluator {
 
     for (const setupFile of this.setupFiles) {
       const setupModule = await this.parseSetup(setupFile);
-      const loader = new ScriptLinker(this.packageDefinition, this.CWD);
-      await setupModule.link(loader.linkFunction);
+      await setupModule.link(this.loader.linkFunction);
       await setupModule.evaluate();
     }
 
@@ -50,8 +51,7 @@ export class ExampleEvaluator {
 
       this.sandbox.console?.log(`${idx}: ${this.identifier}:${lineOffset}`);
 
-      const loader = new ScriptLinker(this.packageDefinition, this.CWD);
-      await script.link(loader.linkFunction);
+      await script.link(this.loader.linkFunction);
       await script.evaluate();
     }
   }
@@ -68,6 +68,7 @@ export class ExampleEvaluator {
       initializeImportMeta(meta) {
         meta.url = identifier;
       },
+      importModuleDynamically: this.importModuleDynamically,
     });
   }
   /**
@@ -107,6 +108,7 @@ export class ExampleEvaluator {
       initializeImportMeta(meta) {
         meta.url = identifier;
       },
+      importModuleDynamically: this.importModuleDynamically,
     });
   }
   /**

@@ -2,19 +2,16 @@
 	"version": 3,
 	"file": "index.d.ts",
 	"names": [
-		"ScriptLinker",
 		"ExampleScript",
 		"PackageDefinitionExports",
 		"PackageDefinition"
 	],
 	"sources": [
-		"../src/script-linker.js",
 		"types.d.ts"
 	],
 	"sourcesContent": [
-		null,
 		null
 	],
-	"mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;iBAUgBA,YAAYA;cAAZA,YAAYA;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;YCRXC,aAAaA;;;;;;YAMbC,wBAAwBA;;;;YAIxBC,iBAAiBA",
+	"mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;YAEiBA,aAAaA;;;;;;YAMbC,wBAAwBA;;;;YAIxBC,iBAAiBA",
 	"ignoreList": []
 }

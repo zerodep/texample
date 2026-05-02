@@ -339,6 +339,24 @@ describe('markdown tester', () => {
     expect(err.stack).to.match(/deny-fetch\.md:7:\d+/);
   });
 
+  it('supports dynamic import() inside example blocks (node: builtins and the consumer package)', async () => {
+    const logLines = [];
+    const evaluator = new ExampleEvaluator('./test/docs/dynamic-import.md', packageDefinition, CWD, {
+      console: {
+        log(...args) {
+          logLines.push(args);
+        },
+      },
+    });
+
+    await evaluator.evaluate();
+
+    const archLine = logLines.find((args) => args[0] === 'arch:');
+    const ctorLine = logLines.find((args) => args[0] === 'ctor:');
+    expect(archLine, 'arch:').to.exist.and.have.property('1', 'function');
+    expect(ctorLine, 'ctor:').to.exist.and.have.property('1', 'function');
+  });
+
   it('detects javascript blocks in markdown that uses CRLF line endings (Windows checkout)', async () => {
     const source = await fs.readFile(resolvePath(CWD, 'test/docs/README.md'), 'utf8');
     const crlfSource = source.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
