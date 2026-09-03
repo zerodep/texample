@@ -46,13 +46,8 @@
     "SyntheticModule"
   ],
   "license": "MIT",
-  "overrides": {
-    "mocha": {
-      "yargs": "^18.1.0"
-    }
-  },
   "devDependencies": {
-    "@0dep/piso": "^4.0.0",
+    "@0dep/piso": "^5.0.0",
     "@eslint/js": "^10.0.1",
     "@rollup/plugin-commonjs": "^29.0.0",
     "@types/chai": "^5.2.0",
@@ -64,7 +59,7 @@
     "dts-buddy": "^0.8.3",
     "eslint": "^10.2.1",
     "globals": "^17.5.0",
-    "mocha": "^11.1.0",
+    "mocha": "^12.0.0",
     "nock": "^14.0.13",
     "prettier": "^3.2.5",
     "rollup": "^4.17.2",
