@@ -4,6 +4,16 @@ Execute your README markdown javascript ESM examples to make sure they run as ex
 
 [![Build](https://github.com/zerodep/texample/actions/workflows/build.yaml/badge.svg)](https://github.com/zerodep/texample/actions/workflows/build.yaml)[![Build (Windows)](https://github.com/zerodep/texample/actions/workflows/build-windows.yaml/badge.svg)](https://github.com/zerodep/texample/actions/workflows/build-windows.yaml)[![Coverage Status](https://coveralls.io/repos/github/zerodep/texample/badge.svg?branch=main)](https://coveralls.io/github/zerodep/texample?branch=main)
 
+<!-- toc -->
+
+- [Introduction](#introduction)
+- [CLI](#cli)
+- [Vm context setup](#vm-context-setup)
+- [Config file](#config-file)
+- [Customization example](#customization-example)
+
+<!-- /toc -->
+
 ## Introduction
 
 If you have been a decent chap you probably have decorated your module with lots of code examples in accordance with the "Show me the code"-motto. To be sure that your examples run as expected you can run through them with this module. Wrap your examples with:
@@ -50,7 +60,7 @@ To ignore an example snippet use ` ```js `.
 
 Arguments
 
-- List of markdown files separated by comma (,)
+- List of markdown files separated by comma (,). An entry with `*`, `?` or `[` is a glob pattern, expanded with Node's own `fs.glob` (Node 22 and later, older versions take the entry as a plain path), so it works the same in an npm script on Windows as on macOS and Linux. `**` matches subdirectories, `node_modules` is never entered, and the matches run in sorted order. A pattern that matches nothing is skipped with a warning. A file runs once, however many entries name or match it. Symlinks are silently ignored, list the target instead
 - Optional markdown block index number, from 0
 - [`-r <path>`](#vm-context-setup) ESM file run inside the vm context before the example (repeatable)
 - [`-c <path>`](#config-file) JSON config file with `require` and `node-option`
@@ -59,6 +69,7 @@ Arguments
 
 ```sh
 texample ./README.md,./docs/API.md
+texample './docs/**/*.md'
 ```
 
 The vm context is `globalThis`, so examples have access to `fetch`, `EventTarget`, `performance`, and the rest of Node's runtime by default. Each invocation runs in its own forked child process, so anything an example writes to `globalThis` is thrown away when the run ends.

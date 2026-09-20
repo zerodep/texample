@@ -1,4 +1,5 @@
 import { fork } from 'node:child_process';
+import { symlinkSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const CLI = './cli.cjs';
@@ -58,6 +59,74 @@ describe('cli', () => {
     expect(code).to.equal(0);
     expect(stdout).to.match(/escape-backticks\.md:\d+/);
     expect(stdout).to.match(/test\/docs\/README\.md:\d+/);
+  });
+
+  it('expands a glob pattern with node:fs glob and runs the matches in sorted order', async () => {
+    const { code, stdout, stderr } = await runCli(['./test/docs/[Re]*.md']);
+
+    expect(code, stderr).to.equal(0);
+    const headers = stdout.match(/^0: file:\/\/.+test\/docs\/[^/]+\.md:\d+$/gm) ?? [];
+    expect(headers.length).to.equal(2);
+    expect(headers[0]).to.match(/README\.md:\d+$/);
+    expect(headers[1]).to.match(/escape-backticks\.md:\d+$/);
+  });
+
+  it('runs a file once however many arguments name or match it', async () => {
+    const { code, stdout, stderr } = await runCli(['./test/docs/README.md,./test/docs/[R]*.md,test/docs/README.md']);
+
+    expect(code, stderr).to.equal(0);
+    const headers = stdout.match(/^0: file:\/\/.+test\/docs\/README\.md:\d+$/gm) ?? [];
+    expect(headers.length).to.equal(1);
+  });
+
+  describe('symlinks', () => {
+    const link = './test/docs/README-link.md';
+    const linkedDir = './test/linked-docs';
+
+    before(function linkReadme() {
+      try {
+        symlinkSync('README.md', link);
+        symlinkSync('docs', linkedDir);
+      } catch (err) {
+        // Windows needs elevated rights or developer mode to create symlinks
+        if (err.code === 'EPERM') this.skip();
+        else throw err;
+      }
+    });
+
+    after(() => {
+      rmSync(link, { force: true });
+      rmSync(linkedDir, { force: true });
+    });
+
+    it('silently skips a file reached through a symlinked directory, whether listed or matched by a glob', async () => {
+      const { code, stdout, stderr } = await runCli([
+        `${linkedDir}/escape-backticks.md,${linkedDir}/escape-*.md,./test/**/escape-backticks.md`,
+      ]);
+
+      expect(code, stderr).to.equal(0);
+      expect(stderr).to.equal('');
+      const headers = stdout.match(/^0: file:\/\/.+escape-backticks\.md:\d+$/gm) ?? [];
+      expect(headers.length, 'only the real path runs, once').to.equal(1);
+      expect(headers[0]).to.match(/test\/docs\/escape-backticks\.md/);
+    });
+
+    it('silently skips a symlink, whether listed or matched by a glob', async () => {
+      const { code, stdout, stderr } = await runCli([`${link},./test/docs/*-link.md,./test/docs/escape-backticks.md`]);
+
+      expect(code, stderr).to.equal(0);
+      expect(stdout).to.not.match(/README-link\.md/);
+      expect(stdout).to.match(/escape-backticks\.md:\d+/);
+      expect(stderr).to.equal('');
+    });
+  });
+
+  it('warns on stderr and exits 0 when a glob pattern matches nothing', async () => {
+    const { code, stdout, stderr } = await runCli(['./test/docs/nope-*.md']);
+
+    expect(code, stderr).to.equal(0);
+    expect(stdout).to.equal('');
+    expect(stderr).to.match(/^\.\/test\/docs\/nope-\*\.md: no matching file, skipped\.$/m);
   });
 
   it('honors the numeric block index argument and runs only that block', async () => {

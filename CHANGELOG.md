@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## v1.1.0 - 2026-09-20
+
+- CLI file arguments accept glob patterns, expanded with Node's own `fs.glob`, see the CLI section of the README
+- a file listed or matched more than once runs once
+- symlinks are silently ignored, list the target instead
+- generate the README table of contents with [@0dep/toc](https://www.npmjs.com/package/@0dep/toc)
+- bump dev dependencies
+
 ## v1.0.2 - 2026-05-02
 
 - support dynamic import in examples
