@@ -29,7 +29,7 @@ export class ExampleEvaluator {
     this.sandbox = vmContext ?? globalThis;
     this.setupFiles = (setupFiles ?? []).map((f) => resolvePath(CWD, f));
     this.loader = new ScriptLinker(packageDefinition, CWD);
-    this.importModuleDynamically = (specifier, referrer) => this.loader.link(specifier, referrer);
+    this.importModuleDynamically = (specifier, referrer, attributes) => this.loader.link(specifier, referrer, { attributes });
   }
   /**
    * Evaluate markdown

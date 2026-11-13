@@ -37,7 +37,6 @@ config/_revision
 *.log
 
 package-lock.json
-dist/
 
 # AI
 CLAUDE.md

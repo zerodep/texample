@@ -4,16 +4,18 @@ const process = require('node:process');
 
 if (process.argv.slice(2).includes('-?')) {
   // eslint-disable-next-line no-console
-  console.log(`Usage: texample [files] [blockIdx] [-r <file>]... [-c <config>] [-i] [-?]
+  console.log(`Usage: texample [file...] [blockIdx] [-r <file>]... [-c <config>] [-i] [-?]
 
-  files       comma-separated list of markdown files (default ./README.md).
+  file        markdown files (default ./README.md), several can be given as
+              separate arguments.
               An entry with *, ? or [ is a glob pattern, expanded with node's
-              own fs.glob (node 22+) so it works in npm scripts on Windows too. ** matches
+              own fs.glob so it works in npm scripts on Windows too. ** matches
               subdirectories, node_modules is never entered, matches run in
               sorted order and a pattern that matches nothing is skipped with a
               warning. A file runs once, however many entries name or match it.
               Symlinks are silently ignored, list the target instead.
-  blockIdx    0-based index of a single \`\`\`javascript block to run
+  blockIdx    0-based index of a single \`\`\`javascript block to run, in
+              every file
   -r <path>   ESM file evaluated in the example's vm context before the example
               runs. May be repeated to chain multiple setup files. Paths are
               resolved relative to cwd. Use this to mutate the sandbox itself
@@ -35,7 +37,7 @@ in its own forked child process, so mutations don't leak across runs.
 
 Examples:
   texample ./README.md
-  texample ./README.md,./docs/API.md
+  texample ./README.md ./docs/API.md
   texample './docs/**/*.md'
   texample ./README.md 2
   texample ./example.md -r ./deny-fetch.mjs -r ./mock-time.mjs
@@ -47,8 +49,6 @@ const vm = require('node:vm');
 const { glob, realpath } = require('node:fs/promises');
 const { basename, join, relative, resolve: resolvePath } = require('node:path');
 
-const { ExampleEvaluator } = require('./dist/index.cjs');
-
 if (!('SourceTextModule' in vm)) throw new Error('No SourceTextModule in vm, try using node --experimental-vm-modules flag');
 
 const CWD = process.cwd();
@@ -56,8 +56,8 @@ const CWD = process.cwd();
 const packageDefinition = require(resolvePath(CWD, 'package.json'));
 
 let blockIdx = NaN;
-let markdownFiles = './README.md';
 let ignoreExit = false;
+const markdownFiles = [];
 const setupFiles = [];
 
 const argv = process.argv.slice(2);
@@ -67,8 +67,9 @@ for (let i = 0; i < argv.length; i++) {
   else if (arg === '-i') ignoreExit = true;
   else if (arg === '-r') setupFiles.push(argv[++i]);
   else if (!isNaN(Number(arg))) blockIdx = Number(arg);
-  else markdownFiles = arg;
+  else markdownFiles.push(arg);
 }
+if (!markdownFiles.length) markdownFiles.push('./README.md');
 
 run().catch((err) => {
   // eslint-disable-next-line no-console
@@ -77,9 +78,10 @@ run().catch((err) => {
 });
 
 async function run() {
+  const { ExampleEvaluator } = await import('./src/index.js');
   const seen = new Set();
   const realCwd = await realpath(CWD);
-  for (const arg of markdownFiles.split(',').filter(Boolean)) {
+  for (const arg of markdownFiles) {
     const matches = await expand(arg);
     // eslint-disable-next-line no-console
     if (!matches.length) console.error(`${arg}: no matching file, skipped.`);
@@ -111,13 +113,12 @@ async function throughSymlink(realCwd, resolved) {
 }
 
 /**
- * Expand a glob pattern to the sorted matching files, a plain path is returned as is.
- * fs.glob arrived in node 22, on older versions the argument is taken as a plain path
+ * Expand a glob pattern to the sorted matching files, a plain path is returned as is
  * @param {string} arg
  * @returns {Promise<string[]>}
  */
 async function expand(arg) {
-  if (!glob || !/[*?[]/.test(arg)) return [arg];
+  if (!/[*?[]/.test(arg)) return [arg];
   const matches = [];
   for await (const file of glob(arg, { exclude: (path) => basename(path) === 'node_modules' })) matches.push(file);
   return matches.sort();

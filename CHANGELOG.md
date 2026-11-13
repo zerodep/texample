@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## v2.0.0 - 2026-11-13
+
+### Breaking changes
+
+- drop support for Node.js < 22, `engines` now requires `>=22`
+- remove the CommonJS build, the package is ESM only and the CLI runs `src/` as is. `require('texample')` loads the ES module and needs Node.js 22.12 or later
+- CLI takes several markdown files as separate arguments, `texample ./README.md ./docs/API.md`, where only the last file argument ran before. The comma separated list is gone, a comma is now part of the file name
+
+### Features
+
+- support import attributes in examples, e.g. `import data from './data.json' with { type: 'json' }`, for both static and dynamic imports
+
 ## v1.1.0 - 2026-09-20
 
 - CLI file arguments accept glob patterns, expanded with Node's own `fs.glob`, see the CLI section of the README

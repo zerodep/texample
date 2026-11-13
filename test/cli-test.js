@@ -53,12 +53,14 @@ describe('cli', () => {
     expect(headers[0]).to.match(/^0: /);
   });
 
-  it('runs each file when passed a comma-separated list', async () => {
-    const { code, stdout } = await runCli(['./test/docs/escape-backticks.md,./test/docs/README.md']);
+  it('runs each file in the order given when passed as separate arguments', async () => {
+    const { code, stdout, stderr } = await runCli(['./test/docs/escape-backticks.md', './test/docs/README.md']);
 
-    expect(code).to.equal(0);
-    expect(stdout).to.match(/escape-backticks\.md:\d+/);
-    expect(stdout).to.match(/test\/docs\/README\.md:\d+/);
+    expect(code, stderr).to.equal(0);
+    const headers = stdout.match(/^0: file:\/\/.+test\/docs\/[^/]+\.md:\d+$/gm) ?? [];
+    expect(headers.length).to.equal(2);
+    expect(headers[0]).to.match(/escape-backticks\.md:\d+$/);
+    expect(headers[1]).to.match(/README\.md:\d+$/);
   });
 
   it('expands a glob pattern with node:fs glob and runs the matches in sorted order', async () => {
@@ -72,7 +74,7 @@ describe('cli', () => {
   });
 
   it('runs a file once however many arguments name or match it', async () => {
-    const { code, stdout, stderr } = await runCli(['./test/docs/README.md,./test/docs/[R]*.md,test/docs/README.md']);
+    const { code, stdout, stderr } = await runCli(['./test/docs/README.md', './test/docs/[R]*.md', 'test/docs/README.md']);
 
     expect(code, stderr).to.equal(0);
     const headers = stdout.match(/^0: file:\/\/.+test\/docs\/README\.md:\d+$/gm) ?? [];
@@ -101,7 +103,9 @@ describe('cli', () => {
 
     it('silently skips a file reached through a symlinked directory, whether listed or matched by a glob', async () => {
       const { code, stdout, stderr } = await runCli([
-        `${linkedDir}/escape-backticks.md,${linkedDir}/escape-*.md,./test/**/escape-backticks.md`,
+        `${linkedDir}/escape-backticks.md`,
+        `${linkedDir}/escape-*.md`,
+        './test/**/escape-backticks.md',
       ]);
 
       expect(code, stderr).to.equal(0);
@@ -112,7 +116,7 @@ describe('cli', () => {
     });
 
     it('silently skips a symlink, whether listed or matched by a glob', async () => {
-      const { code, stdout, stderr } = await runCli([`${link},./test/docs/*-link.md,./test/docs/escape-backticks.md`]);
+      const { code, stdout, stderr } = await runCli([link, './test/docs/*-link.md', './test/docs/escape-backticks.md']);
 
       expect(code, stderr).to.equal(0);
       expect(stdout).to.not.match(/README-link\.md/);
@@ -138,10 +142,29 @@ describe('cli', () => {
     expect(headers[0]).to.match(/^0: /);
   });
 
+  it('applies the block index to every file passed as separate arguments', async () => {
+    const { code, stdout, stderr } = await runCli(['./test/docs/escape-backticks.md', './test/docs/README.md', '1']);
+
+    expect(code, stderr).to.equal(0);
+    const headers = stdout.match(/^\d+: file:\/\/.+test\/docs\/[^/]+\.md:\d+$/gm) ?? [];
+    expect(headers.length).to.equal(2);
+    expect(headers[0]).to.match(/^1: .+escape-backticks\.md:\d+$/);
+    expect(headers[1]).to.match(/^1: .+README\.md:\d+$/);
+  });
+
   it('runs the globals.md example using globalThis as the vm context (default)', async () => {
     const { code, stderr } = await runCli(['./test/docs/globals.md']);
 
     expect(code, stderr).to.equal(0);
+  });
+
+  it('runs examples that import JSON with import attributes', async () => {
+    const { code, stdout, stderr } = await runCli(['./test/docs/import-json.md']);
+
+    expect(code, stderr).to.equal(0);
+    expect(stdout).to.match(/^static: baz$/m);
+    expect(stdout).to.match(/^bare: chai$/m);
+    expect(stdout).to.match(/^dynamic: baz$/m);
   });
 
   it('ignores ```js blocks while picking up every ```javascript block (including indented ones)', async () => {
@@ -207,6 +230,14 @@ describe('cli', () => {
     const { code, stderr } = await runCli(['./does-not-exist.md']);
 
     expect(code).to.equal(1);
+    expect(stderr).to.match(/ENOENT|no such file/i);
+  });
+
+  it('takes a comma as part of the file name, not as a separator', async () => {
+    const { code, stdout, stderr } = await runCli(['./test/docs/escape-backticks.md,./test/docs/README.md']);
+
+    expect(code).to.equal(1);
+    expect(stdout).to.equal('');
     expect(stderr).to.match(/ENOENT|no such file/i);
   });
 });

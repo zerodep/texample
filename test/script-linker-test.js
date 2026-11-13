@@ -82,5 +82,29 @@ describe('ScriptLinker', () => {
 
       expect(captured).to.equal('node:fs');
     });
+
+    it('passes the import attributes on to linkModule', async () => {
+      const linker = new ScriptLinker({ name: 'my-module' }, CWD);
+
+      let captured;
+      linker.linkModule = function linkModule(_identifier, _reference, attributes) {
+        captured = attributes;
+        return Promise.resolve();
+      };
+
+      const reference = { identifier: pathToFileURL(resolvePath(CWD, 'test/src/my-module.mjs')).toString() };
+      await linker.link('./data.json', reference, { attributes: { type: 'json' } });
+
+      expect(captured).to.deep.equal({ type: 'json' });
+    });
+
+    it('links a JSON module when passed the json type attribute', async () => {
+      const linker = new ScriptLinker({ name: 'my-module' }, CWD);
+
+      const reference = { identifier: pathToFileURL(resolvePath(CWD, 'test/src/my-module.mjs')).toString() };
+      const linked = await linker.link('./data.json', reference, { attributes: { type: 'json' } });
+
+      expect(linked.namespace.default).to.deep.equal({ bar: 'baz' });
+    });
   });
 });

@@ -25,8 +25,9 @@ export function ScriptLinker(packageDefinition, CWD) {
  * use linkFunction instead
  * @param {string} specifier
  * @param {import('vm').Module} reference
+ * @param {{ attributes?: Record<string, string> }} [extra] import attributes of the import, e.g. `with { type: 'json' }`
  */
-ScriptLinker.prototype.link = function link(specifier, reference) {
+ScriptLinker.prototype.link = function link(specifier, reference, extra) {
   let modulePath;
   if ((modulePath = this.getPackageModule(specifier))) {
     specifier = pathToFileURL(resolvePath(this.CWD, modulePath)).href;
@@ -35,7 +36,7 @@ ScriptLinker.prototype.link = function link(specifier, reference) {
   } else if (!specifier.startsWith('node:')) {
     // Bare npm specifier: resolve from the consumer's project (this.CWD), not from
     // texample's own node_modules. Without this anchor `await import('pino')` from
-    // dist/index.cjs would look in texample's tree and fail with ERR_MODULE_NOT_FOUND.
+    // this file would look in texample's tree and fail with ERR_MODULE_NOT_FOUND.
     // The resolved path must be a file:// URL so dynamic import works on Windows,
     // where `C:\...` would otherwise be parsed as a `c:` URL scheme.
     // If resolution fails (truly missing), fall through with the original specifier
@@ -47,7 +48,7 @@ ScriptLinker.prototype.link = function link(specifier, reference) {
     }
   }
 
-  return this.linkModule(specifier, reference);
+  return this.linkModule(specifier, reference, extra?.attributes);
 };
 
 /**
@@ -77,9 +78,10 @@ ScriptLinker.prototype.getPackageModule = function getPackageModule(specifier) {
  * fetch interception, chronokinesis's `Date = FakeDate`) are observable to the example.
  * @param {string} identifier
  * @param {import('vm').Module} reference
+ * @param {Record<string, string>} [attributes] import attributes the module is imported with
  */
-ScriptLinker.prototype.linkModule = async function linkModule(identifier, reference) {
-  const imported = await import(identifier);
+ScriptLinker.prototype.linkModule = async function linkModule(identifier, reference, attributes) {
+  const imported = await import(identifier, { with: attributes });
   const exported = Object.keys(imported);
 
   const synthetic = new vm.SyntheticModule(

@@ -42,13 +42,13 @@ Any irregularities will be printed to stdout, as well as `console.logs`. E.g:
       at parseDuration (file:///usr/local/src/projects/zerodep/piso/src/index.js:1299:39)
       at file:///usr/local/src/projects/zerodep/piso/README.md:89:3
       at SourceTextModule.evaluate (node:internal/vm/module:229:23)
-      at ExampleEvaluator.evaluate (/usr/local/src/projects/zerodep/piso/node_modules/texample/dist/index.cjs:125:20)
+      at ExampleEvaluator.evaluate (file:///usr/local/src/projects/zerodep/piso/node_modules/texample/src/index.js:55:20)
       at async run (/usr/local/src/projects/zerodep/piso/node_modules/texample/cli.cjs:34:5)
 }
 2: file:///usr/local/src/projects/zerodep/piso/README.md:103
 SyntaxError: The requested module '@0dep/piso' does not provide an export named 'getDates'
     at SourceTextModule.link (node:internal/vm/module:203:17)
-    at async ExampleEvaluator.evaluate (/usr/local/src/projects/zerodep/piso/node_modules/texample/dist/index.cjs:124:7)
+    at async ExampleEvaluator.evaluate (file:///usr/local/src/projects/zerodep/piso/node_modules/texample/src/index.js:54:7)
     at async run (/usr/local/src/projects/zerodep/piso/node_modules/texample/cli.cjs:34:5)
 ```
 
@@ -60,16 +60,16 @@ To ignore an example snippet use ` ```js `.
 
 Arguments
 
-- List of markdown files separated by comma (,). An entry with `*`, `?` or `[` is a glob pattern, expanded with Node's own `fs.glob` (Node 22 and later, older versions take the entry as a plain path), so it works the same in an npm script on Windows as on macOS and Linux. `**` matches subdirectories, `node_modules` is never entered, and the matches run in sorted order. A pattern that matches nothing is skipped with a warning. A file runs once, however many entries name or match it. Symlinks are silently ignored, list the target instead
-- Optional markdown block index number, from 0
+- Markdown files, default `./README.md`. Several files can be given as separate arguments. An entry with `*`, `?` or `[` is a glob pattern, expanded with Node's own `fs.glob`, so it works the same in an npm script on Windows as on macOS and Linux. `**` matches subdirectories, `node_modules` is never entered, and the matches run in sorted order. A pattern that matches nothing is skipped with a warning. A file runs once, however many entries name or match it. Symlinks are silently ignored, list the target instead
+- Optional markdown block index number, from 0, applied to every file
 - [`-r <path>`](#vm-context-setup) ESM file run inside the vm context before the example (repeatable)
 - [`-c <path>`](#config-file) JSON config file with `require` and `node-option`
 - `-i` exit 0 even when an example throws (errors still print to stderr)
 - `-?` print usage and exit
 
 ```sh
-texample ./README.md,./docs/API.md
-texample './docs/**/*.md'
+texample ./README.md ./docs/API.md    # several files
+texample './docs/**/*.md'             # glob patterns, quoted so the shell leaves them alone
 ```
 
 The vm context is `globalThis`, so examples have access to `fetch`, `EventTarget`, `performance`, and the rest of Node's runtime by default. Each invocation runs in its own forked child process, so anything an example writes to `globalThis` is thrown away when the run ends.
@@ -106,25 +106,24 @@ You can write your own evaluator and pass a different vm context. Create a scrip
 
 ```javascript
 import vm from 'node:vm';
-import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
-import { resolve as resolvePath } from 'node:path';
 
 import { ExampleEvaluator } from 'texample';
 
+import packageDefinition from './package.json' with { type: 'json' };
+
 if (!('SourceTextModule' in vm)) throw new Error('No SourceTextModule in vm, try using node --experimental-vm-modules flag');
 
-const CWD = process.cwd();
-
-const nodeRequire = createRequire(fileURLToPath(import.meta.url));
-const packageDefinition = nodeRequire(resolvePath(CWD, 'package.json'));
-
-const markdownFiles = process.argv[2] || './README.md';
-const blockIdx = Number(process.argv[3]);
+const markdownFiles = [];
+let blockIdx = NaN;
+for (const arg of process.argv.slice(2)) {
+  if (isNaN(Number(arg))) markdownFiles.push(arg);
+  else blockIdx = Number(arg);
+}
+if (!markdownFiles.length) markdownFiles.push('./README.md');
 
 (async () => {
-  for (const filePath of markdownFiles.split(',')) {
-    await new ExampleEvaluator(filePath, packageDefinition, CWD, {
+  for (const filePath of markdownFiles) {
+    await new ExampleEvaluator(filePath, packageDefinition, '.', {
       Buffer,
       console,
       setTimeout,

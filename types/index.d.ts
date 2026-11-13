@@ -22,7 +22,7 @@ declare module 'texample' {
 		sandbox: any;
 		setupFiles: string[];
 		loader: ScriptLinker_1;
-		importModuleDynamically: (specifier: any, referrer: any) => Promise<vm.SyntheticModule>;
+		importModuleDynamically: (specifier: any, referrer: any, attributes: any) => Promise<vm.SyntheticModule>;
 		/**
 		 * Evaluate markdown
 		 * 
@@ -64,12 +64,17 @@ declare module 'texample' {
 		module: string;
 		CWD: string;
 		consumerRequire: NodeJS.Require;
-		linkFunction: (specifier: string, reference: import("vm").Module) => Promise<vm.SyntheticModule>;
+		linkFunction: (specifier: string, reference: import("vm").Module, extra?: {
+			attributes?: Record<string, string>;
+		}) => Promise<vm.SyntheticModule>;
 		/**
 		 * Link function used when evaluating source text module, should not be used directly without binding it to itself
 		 * use linkFunction instead
-		 * */
-		link(specifier: string, reference: import("vm").Module): Promise<vm.SyntheticModule>;
+		 * @param extra import attributes of the import, e.g. `with { type: 'json' }`
+		 */
+		link(specifier: string, reference: import("vm").Module, extra?: {
+			attributes?: Record<string, string>;
+		}): Promise<vm.SyntheticModule>;
 		/**
 		 * Get current package module path
 		 * */
@@ -79,8 +84,9 @@ declare module 'texample' {
 		 * exports are visible inside the vm context. With the default `vmContext = globalThis` the host
 		 * realm and vm realm share globals, so module-level mutations from these imports (e.g. nock's
 		 * fetch interception, chronokinesis's `Date = FakeDate`) are observable to the example.
-		 * */
-		linkModule(identifier: string, reference: import("vm").Module): Promise<vm.SyntheticModule>;
+		 * @param attributes import attributes the module is imported with
+		 */
+		linkModule(identifier: string, reference: import("vm").Module, attributes?: Record<string, string>): Promise<vm.SyntheticModule>;
 	}
   interface ExampleScript {
 	scriptSource: string;

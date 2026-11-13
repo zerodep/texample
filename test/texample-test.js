@@ -58,7 +58,7 @@ describe('markdown tester', () => {
       {
         name: packageDefinition.name,
         exports: {
-          import: packageDefinition.exports['.'].import,
+          import: packageDefinition.exports['.'].default,
         },
       },
       CWD,
@@ -355,6 +355,33 @@ describe('markdown tester', () => {
     const ctorLine = logLines.find((args) => args[0] === 'ctor:');
     expect(archLine, 'arch:').to.exist.and.have.property('1', 'function');
     expect(ctorLine, 'ctor:').to.exist.and.have.property('1', 'function');
+  });
+
+  it('supports JSON imports with import attributes (relative, bare specifier and dynamic import())', async () => {
+    const logLines = [];
+    const evaluator = new ExampleEvaluator('./test/docs/import-json.md', packageDefinition, CWD, {
+      console: {
+        log(...args) {
+          logLines.push(args);
+        },
+      },
+    });
+
+    await evaluator.evaluate();
+
+    const staticLine = logLines.find((args) => args[0] === 'static:');
+    const bareLine = logLines.find((args) => args[0] === 'bare:');
+    const dynamicLine = logLines.find((args) => args[0] === 'dynamic:');
+    expect(staticLine, 'static:').to.exist.and.have.property('1', 'baz');
+    expect(bareLine, 'bare:').to.exist.and.have.property('1', 'chai');
+    expect(dynamicLine, 'dynamic:').to.exist.and.have.property('1', 'baz');
+  });
+
+  it('can be required from CommonJS', () => {
+    const required = nodeRequire('texample');
+
+    expect(required.ExampleEvaluator).to.equal(ExampleEvaluator);
+    expect(required.default).to.equal(ExampleEvaluator);
   });
 
   it('detects javascript blocks in markdown that uses CRLF line endings (Windows checkout)', async () => {
